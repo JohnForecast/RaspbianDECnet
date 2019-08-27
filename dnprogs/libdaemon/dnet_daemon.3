@@ -1,0 +1,162 @@
+.TH DNET_DAEMON 3 "May 3, 1999" "DECnet daemon functions"
+.SH NAME
+dnet_daemon, dnet_accept, dnet_reject \- DECnet daemon functions
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.br
+.B -ldnet -ldnet_daemon -lcrypt
+.br
+.sp
+.B int dnet_daemon (int object, char *named_object, int verbosity, int do_fork)
+.br
+.B void dnet_accept (int sockfd, short status, char *data, int len)
+.br
+.B void dnet_reject (int sockfd, short status, char *data, int len)
+.sp
+.SH DESCRIPTION
+These functions are the core of writing a DECnet daemon under Linux. They
+provide all the functionality necessary to have a daemon that will run
+standalone or be forked from the
+.B dnetd(8)
+DECnet super-server. (see 
+.B dnetd.conf(3)
+for information on configuring
+.B dnetd.
+.br
+.B dnet_daemon()
+returns a connected file descriptor which your daemon program uses to 
+talk to the remote client. If your daemon is run from dnetd then this will
+be it's standard input.
+.br
+.B object 
+is the numbered object which your daemon binds to. Alternatively you can
+bind to a
+.br
+.B named_object
+in which case the object number should be zero.
+.br
+.B verbosity 
+determines how much logging the daemon functions will do. 0 means no logging,
+1 is fairly verbose logging. Anything higher is useful only for debugging.
+.br
+.B do_fork
+If this is set then, when running standalone, the daemon will fork and detach
+itself from the parent process.
+
+.br
+.B dnet_accept()
+You MUST call this or dnetd_reject() after receiving a valid file descriptor
+from dnet_daemon. The optional data and status parameters provide extra
+information to the connecting host. See below for status values.
+
+.br
+.B dnet_reject()
+If you wish to reject the connection for any reason the call this function 
+instead of 
+.B dnet_accept()
+with the status set to the reason (see below) you
+are rejecting the connection. If your daemon is authenticated by dnetd
+then connections will already be rejected if they are not correctly
+authorized by either a valid username/password or the proxy database (see
+.B decnet.proxy(3)
+)
+.br
+.br
+Here is a list of status codes available in dnetd.conf:
+.br
+.nf
+
+#define DNSTAT_REJECTED         0 /* Rejected by object */
+#define DNSTAT_RESOURCES        1 /* No resources available */
+#define DNSTAT_NODENAME         2 /* Unrecognised node name */
+#define DNSTAT_LOCNODESHUT      3 /* Local Node is shut down */
+#define DNSTAT_OBJECT           4 /* Unrecognised object */
+#define DNSTAT_OBJNAMEFORMAT    5 /* Invalid object name format */
+#define DNSTAT_TOOBUSY          6 /* Object too busy */
+#define DNSTAT_NODENAMEFORMAT  10 /* Invalid node name format */
+#define DNSTAT_REMNODESHUT     11 /* Remote Node is shut down */
+#define DNSTAT_ACCCONTROL      34 /* Access control rejection */
+#define DNSTAT_NORESPONSE      38 /* No response from object */
+#define DNSTAT_NODEUNREACH     39 /* Node Unreachable */
+
+/* Disconnect notification errors */
+#define DNSTAT_MANAGEMENT       8 /* Abort by management/third party */
+#define DNSTAT_ABORTOBJECT      9 /* Remote object aborted the link */
+#define DNSTAT_FAILED          38 /* Node or object failed */
+
+#define DNSTAT_NODERESOURCES   32 /* Node does not have sufficient resources for a new link */
+#define DNSTAT_OBJRESOURCES    33 /* Object does not have sufficient resources for a new link */
+#define DNSTAT_BADACCOUNT      36 /* The Account field in unacceptable */
+#define DNSTAT_TOOLONG         43 /* A field in the access control message was too long */
+
+.fi
+
+.SH EXAMPLE
+Here is an example MIRROR server. The real mirror server is built into dnetd.
+This also illustrates the logging functions in libdnetd_daemon.
+.nf
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdarg.h>
+#include <syslog.h>
+#include <netdnet/dnetdb.h>
+#include <netdnet/dn.h>
+
+int main(int argc, char *argv[])
+{
+    int insock;
+
+    /* Set up logging. The parameters are:
+     * daemon name to use
+     * 's' means log to syslog
+     */
+    init_daemon_logging("mirror", 's');
+
+    // Wait for something to happen (or check to see if it already has)
+    insock = dnet_daemon(DNOBJECT_MIRROR, NULL, 0, 1);
+
+    // Make sure we got a valid socket 
+    if (insock > \-1)
+    {
+        int readnum;
+        char condata[] = {0x00, 0x20}; // Actually 4096 as a LE word
+        char ibuf[4096];
+
+        /* We must accept the connection */
+        dnet_accept(insock, 0, condata, 2);
+
+        while ( (readnum=read(insock,ibuf,sizeof(ibuf))) > 0)
+        {
+            ibuf[0]=0x01;
+            if (write(insock,ibuf,readnum) < 0)
+            {
+                DNETLOG((LOG_WARNING, "mirror, write failed: %m\\n"));
+                close(insock);
+                break;
+            }
+        }
+        close(insock);
+    }
+    return 0;
+}
+
+To compile:
+gcc mirror.c \-omirror \-ldnet \-ldnet_daemon \-lcrypt
+
+.fi
+
+.SH SEE ALSO
+
+.BR dnetd (8),
+.BR dnet_addr (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3),
+.BR decnet.proxy (5)
