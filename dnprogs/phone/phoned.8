@@ -1,0 +1,44 @@
+.TH PHONED 8 "March 26 1999" "DECnet utilities"
+
+.SH NAME
+phoned \- DECnet phone server daemon
+.SH SYNOPSIS
+.B phoned
+[options]
+.br
+Options:
+.br
+[\-dvVh] [\-u user]
+.SH DESCRIPTION
+.PP
+.B phoned
+is a daemon that serves phone clients. It must be running for any users
+to the phone command.
+.SH OPTIONS
+.TP
+.I "\-u"
+Specifies the username that
+.B phoned
+runs as. By default this is "nobody". If this user does not exist then
+phoned will run as root which could be a security hole.
+.br
+NOTE that phoned must be started as root to allow it to bind to the phone
+DECnet object.
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose phoned will be. Don't 
+use more than one for normal operation because it will seriously impair
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of phoned.
+
+
+.SH SEE ALSO
+.BR phone "(1)"

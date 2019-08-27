@@ -1,0 +1,85 @@
+.TH PHONE 1 "March 26 1999" "DECnet utilities"
+
+.SH NAME
+phone \- Phone utility for DECnet
+.SH SYNOPSIS
+.B phone
+[options]
+.br
+Options:
+.br
+[\-vVh] [\-s switchhook char] [initial command]
+.SH DESCRIPTION
+.PP
+.B phone
+is a program that allows the user to communicate interactively with users
+on VMS systems. Two user interfaces are available: X-Windows (GTK+) and
+terminal (ncurses). If X-Windows is available and compiled into phone
+then it will be used unless the 
+.B \-n
+flag is present on the command line.
+.br
+After entering the phone command you will be presented with the phone screen
+which has windows for the chat and a command-line at the top. If you are not
+talking to another user then you can enter commands directly, otherwise you
+will need to precede commands with the 'switch hook' character, which
+defaults to the percent sign (%).
+.br
+You can also enter a command for phone on the shell command-line. This command
+will be executed when phone starts up. This makes it convenient to enter 
+commands such as:
+.br
+ 'phone answer' or 'phone marsha::chrissie'
+.br
+
+.br
+
+.br
+In command mode phone understands several commands:
+.br
+
+.br
+DIAL <node::user>     Call a user
+.br
+ANSWER                Answer an incoming call
+.br
+REJECT                Reject an incoming call
+.br
+EXIT or QUIT          Return the the command prompt
+.br
+HOLD                  Hold all callers
+.br
+UNHOLD                Unhold callers
+.br
+HANGUP                Hangup the phone
+.br
+DIR <node>            Show users logged into <node>
+.br
+FACSIMILE <file>      Send <file>
+.br
+HELP                  Show this help
+.br
+
+.br
+All commands (apart from QUIT and EXIT) can be abbreviated to 3 characters
+and all (really all this time) commands are case insensitive.
+
+.SH OPTIONS
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of phone.
+.TP
+.I \-s
+Set the switch hook character. This is the character used to switch from
+talking to another user and entering PHONE commands when using the terminal
+interface.x
+.TP
+.I \-n
+Disables use of the X-windows user interface. Use this to run phone in an
+xterm.
+
+.SH SEE ALSO
+.BR phoned "(8)"
