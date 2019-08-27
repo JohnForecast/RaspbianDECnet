@@ -1,0 +1,13 @@
+#
+# makefile.pgcc - Make library of functions for reading and writing VAX format
+#                 data for Linux using Portland Group C (pgcc).
+#
+# Shell command syntax:
+#
+#    make -f makefile.pgcc [ all | libvaxdata | test | clean ]
+#
+# -O3 (highest level of optimization) -Xa (strict ANSI)
+CC     = pgcc
+CFLAGS = -O3 -Xa
+
+include makefile.linux

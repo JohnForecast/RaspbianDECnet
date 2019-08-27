@@ -1,0 +1,13 @@
+#
+# makefile.icc - Make library of functions for reading and writing VAX format
+#                data for Linux using Intel C (icc).
+#
+# Shell command syntax:
+#
+#    make -f makefile.icc [ all | libvaxdata | test | clean ]
+#
+# -O3 (highest level of optimization) -ansi (strict ANSI)
+CC     = icc
+CFLAGS = -O3 -ansi
+
+include makefile.linux

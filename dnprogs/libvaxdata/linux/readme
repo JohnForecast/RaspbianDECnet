@@ -1,0 +1,23 @@
+Three makefiles have been provided for Linux:
+
+   makefile.gcc    GNU C (gcc)
+   makefile.icc    Intel C (icc)
+   makefile.pgcc   Portland Group C (pgcc)
+
+To create libvaxdata.a from here:
+
+   # make -f makefile.xxx [ all | libvaxdata | clean ]
+
+substituting gcc, icc, or pgcc for xxx.  The default make target is all.
+The library and all object files will be written to a subdirectory named
+for the system architecture returned by "uname -m".
+
+To link a C program with the library:
+
+   # xxx -o program program.o -lvaxdata -Lhere/arch
+
+substituting gcc, icc, or pgcc for xxx, and the path to the library for
+here/arch (assuming it has not been moved or copied somewhere else).
+
+To link a Fortran program with the library, substitute g77, ifort, or pgf77
+(pgf90, pgf95) for xxx, plus the path to the library for here/arch.

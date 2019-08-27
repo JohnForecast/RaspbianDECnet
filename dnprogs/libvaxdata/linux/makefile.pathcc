@@ -1,0 +1,13 @@
+#
+# makefile.pathcc - Make library of functions for reading and writing VAX format
+#                   data for Linux using PathScale C (pathcc).
+#
+# Shell command syntax:
+#
+#    make -f makefile.pathcc [ all | libvaxdata | test | clean ]
+#
+# -O3 (highest level of optimization) -std=c89 (strict ANSI)
+CC     = pathcc
+CFLAGS = -O3 -std=c89
+
+include makefile.linux
