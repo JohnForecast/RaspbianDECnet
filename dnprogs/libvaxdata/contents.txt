@@ -1,0 +1,84 @@
+				Distribution Kit Contents
+
+
+libvaxdata/			Top-level directory
+|
++- contents.txt			This file
+|
++- linux/			Linux makefiles, readme.txt
+|  |
+|  +- makefile.gcc
+|  +- makefile.icc
+|  +- makefile.linux
+|  +- makefile.pathcc
+|  +- makefile.pgcc
+|  +- readme.txt
+|
++- macosx/			Apple Macintosh OS X makefiles, readme.txt
+|  |
+|  +- makefile.gcc
+|  +- makefile.icc
+|  +- makefile.macosx
+|  +- makefile.xlc
+|  +- readme.txt
+|
++- of2005-1424-v1.1.pdf		libvaxdata USGS Open-File Report 2005-1424, v1.2
++- readme.txt			Top-level readme.txt
+|
++- solaris/			Sun Solaris makefiles, readme.txt
+|  |
+|  +- makefile.cc
+|  +- makefile.gcc
+|  +- makefile.solaris
+|  +- readme.txt
+|
++- src/				Source files
+|  |
+|  +- convert_vax_data.c
+|  +- convert_vax_data.h
+|  +- endian.f
+|  +- from_vax_d8.c
+|  +- from_vax_d8_.c
+|  +- from_vax_g8.c
+|  +- from_vax_g8_.c
+|  +- from_vax_h16.c
+|  +- from_vax_h16_.c
+|  +- from_vax_i2.c
+|  +- from_vax_i2_.c
+|  +- from_vax_i4.c
+|  +- from_vax_i4_.c
+|  +- from_vax_r4.c
+|  +- from_vax_r4_.c
+|  +- is_little_endian.c
+|  +- is_little_endian_.c
+|  +- test.c
+|  +- to_vax_d8.c
+|  +- to_vax_d8_.c
+|  +- to_vax_g8.c
+|  +- to_vax_g8_.c
+|  +- to_vax_h16.c
+|  +- to_vax_h16_.c
+|  +- to_vax_i2.c
+|  +- to_vax_i2_.c
+|  +- to_vax_i4.c
+|  +- to_vax_i4_.c
+|  +- to_vax_r4.c
+|  +- to_vax_r4_.c
+|
++- tru64/			HP Tru64 UNIX makefiles, readme.txt
+|  |
+|  +- makefile.cc
+|  +- makefile.gcc
+|  +- makefile.osf1
+|  +- readme.txt
+|
++- vms/				HP OpenVMS DCL command procedures, readme.txt
+|  |
+|  +- make.com
+|  +- readme.txt
+|
++- win32/			Microsoft Windows batch files, readme.txt
+   |
+   +- cwmake.bat
+   +- readme.txt
+   +- vcmake.bat
