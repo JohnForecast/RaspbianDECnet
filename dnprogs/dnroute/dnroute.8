@@ -1,0 +1,81 @@
+.TH DNROUTE 8 "March 30 2006" "DECnet utilities"
+
+.SH NAME
+dnroute \- DECnet Routing Daemon
+.SH SYNOPSIS
+.B dnroute
+[options]
+.br
+Options:
+.br
+[\-dvV2Dtnhr]
+.SH DESCRIPTION
+.PP
+.B dnroute
+is a daemon that manages the DECnet routing tables to provide a simple
+ but probably useful routing policy.
+.br
+.B dnroute
+listens for
+incoming routing messages and adds routes in the kernel
+for non-local areas that it
+sees. Routes will be modifed according to these messages so that the lowest
+cost route that is up will always be used. Routes to locally accessible
+nodes (it those in the neighbour table) will also be added.
+If you want to keep manual control 
+of the route to a particular area, then add a line into dnroute.conf. eg:
+.br
+manual 26
+.br
+will disable dnroute's setting of routing tables for that area. dnetinfo will
+still show the route that
+.B would
+have been set with (M) on the line to show it has been overidden.
+.br
+To implement its routing policies
+.B dnroute
+assumes that all interfaces on the system have a cost of 4. To change this
+add lines in /etc/dnroute.conf for each of the interfaces you
+need to change. eg 
+.br
+eth0 6
+.br
+eth1 8
+.br
+tap0 10
+.br
+A script called dnetinfo is provided that gets the routing information
+from dnroute and displays it on stdout in a format similar to the VMS command
+SHOW NET/OLD.
+
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. Log route changes to syslog.
+.TP
+.I "\-D"
+Debug log. Writes debugging information to stderr. Only useful with \-d.
+.TP
+.I "\-h \-?"
+Displays help for using the command.
+.TP
+.I "\-r"
+Send DECnet routing messages showing the state of local nodes.
+.TP
+.I "\-2"
+Send DECnet level 2 (area) routing messages. Implies \-r.
+.TP
+.I "\-t <secs>"
+Timer to send routing messages on. Defaults to 15 seconds.
+.TP
+.I "\-n"
+Do not set up routes or send routing messages, just monitor the network. Useful for testing.
+.TP
+.I "\-V"
+Show the version of dnroute.
+
+.SH SEE ALSO
+.BR dnetd.conf "(5), " ip "(8)"
