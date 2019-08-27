@@ -1,0 +1,110 @@
+.TH DNTASK 1 "September 25 1998" "DECnet utilities"
+
+.SH NAME
+dntask \- Execute VMS command procedures
+.SH SYNOPSIS
+.B dntask
+[options] command-procedure
+.br
+Options:
+.br
+[\-biVh] [\-t timeout]
+.SH DESCRIPTION
+.PP
+dntask runs command procedures on a remote VMS system.
+.br
+It takes advantage of the ability of the TASK object in DECnet to
+execute an arbitrary command procedure located in
+the users' login directory. The remote command procedure should output
+to SYS$NET rather than SYS$OUTPUT and (if interactive) read it's input
+also from SYS$NET.
+.br
+The VMS equivalent of the (non-interactive version) command would be
+.br
+
+TYPE node::"TASK=command-procedure"
+
+.br
+For some example command procedures see the tasks directory of the source
+distribution. 
+.B show_system.com 
+is a non-interactive task that simply displays
+the output of the VMS "SHOW SYSTEM" command on standard output.
+.B interactive.com
+is an interactive task that allows you to enter DCL commands to be executed
+on the host VMS system. Be careful which commands you enter because they will
+expect input to come from the network connection, for instance programs that do
+screen orientated input or output will almost certainly not work.
+.br
+Task names can be up to 16 characters in length because that's the limit on
+DECnet object names.
+.SH OPTIONS
+.TP
+.I "\-b"
+Send the output in binary mode. By default the output from the DECnet task is
+assumed to be records. This option sends the data "as is" so you can put
+commands like BACKUP in the task and backup to your Linux box.
+.TP
+.I "\-i"
+Interact with the command procedure. The command procedure must be written
+to be interactive by reading from and writing to SYS$NET. Specifying 
+.B \-i
+for a non-interactive command procedure will cause 
+.B dntask
+to time-out waiting for input. Not specifying 
+.B \-i
+for an interactive command procedure will cause it to exit prematurely at
+the VMS end.
+.TP
+.I "\-t timeout"
+Specifies the timeout in seconds for interactive command procedures. If
+no input has been received from either standard input or the VMS end
+in this time then dntask will exit. The default is 60 seconds. If the value
+0 is given then dntask will wait forever (or until you kill it).
+.TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of the tools package that dntask comes from.
+.SH NOTES
+The command procedure that you write MUST ALWAYS write something to SYS$NET
+or you will get a "connection refused" message. This is a limitation
+with DECnet objects.
+.br
+eg. If you write a task to start a remote DECterm it would look something like
+this:
+.br
+
+$ remnode=f$element(0, ":", "''f$trnlnm("sys$rem_node")'")
+.br
+$ set display/create/node='remnode'
+.br
+$ create/term/detach
+.br
+$ def/nolog sys$output sys$net
+.br
+$ write sys$output "DECterm started on ''remnode'"
+.br
+$ exit
+
+The "write" command near the end is essential.
+
+.SH EXAMPLES
+
+  dntask 'myvax::show_system'
+
+.br
+  dndir \-i 'tramp"christine pjc123"::interactive'
+
+.br
+  dndir \-i 'tramp"christine \-"::interactive'
+
+Specifying "-" in the password field will prompt for the password.
+
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dncopy "(1), " dndel "(1)"
