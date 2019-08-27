@@ -1,0 +1,64 @@
+.TH DAPFS 8 "April 2 2008" "DECnet utilities"
+
+.SH NAME
+mount.dapfs \- Mount DAP filesystem over DECnet
+.SH SYNOPSIS
+.B mount.dapfs <node> <mount-point> [-o options]
+[options]
+.br
+.SH DESCRIPTION
+.PP
+This tool is part of the DECnet programs (dnprogs) suite.
+.br
+mount.dapfs mounts a DAP filesystem on (probably) a VMS server
+as a directory on a Linux system. It is invoked by the mount command
+when usig the \-t dapfs switch. dapfs use the FUSE (Filesystem in USEr space)
+system.
+.br
+The node name specified must exist in /etc/decnet.conf or be a node address. 
+With no options given dapfs will connect using a default DECnet account on
+the remote server.
+.br
+
+.SH OPTIONS
+.TP
+.B username= 
+tells dapfs to use this username for the connection.
+.br
+.B password=
+tells dapfs to use this password for the connection.
+.br
+.B block
+tells dapfs to return data using block mode rather than record mode. This will
+return the whole of the internal file structure (eg with sequential files you
+could get odd line endings where the record separators live). It is most useful
+for reading binary data.
+.br
+.B record
+read data using record mode (the default). 
+.br
+.SH EXAMPLES
+.br
+# mount \-tdapfs zarqon /mnt/vax
+.br
+Mounts the default DECnet account on node ZARQON onto the Linux filesystem /mnt/vax
+.br
+
+# mount \-tdapfs alpha1 /mnt/alpha \-ousername=SYSTEM,password=field
+.br
+Mounts the home directory for the user SYSTEM on node ALPHA1, using the password "field" on /mnt/alpha.
+
+.SH CAVEATS
+All files are access by record and this can cause some odd effects if you are not expecting them. The
+file size shown by VMS includes the record overhead of RMS, but dapfs shows only the record contents. 
+utilities that get the file size (using stat) then read that many bytes into a buffer will end up with 
+a file padded with zeros. There's not much I can do about this. Later versions of dapfs might include
+an option to disable record access, but I think this is less useful as it would have to be filesystem-wide.
+.br
+Seeking doesn't work unless you have a remote server that supports STREAM access to files 
+(currently VMS 7.x seems not to). This means that some utilities (eg unzip) will not work as
+they try to seek inside the file looking for data.
+
+
+.SH SEE ALSO
+.BR decnet.proxy "(5), " dnetd "(8), " dnetd.conf "(5), " dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnsubmit "(1), " dnprint "(1)"

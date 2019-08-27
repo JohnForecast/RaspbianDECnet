@@ -1,0 +1,4 @@
+- getattr doesn't return the right size for reads, because of record
+  mungeing. Not much we can do about that :(
+
+- Seeking doesn't work. VMS 7.3(VAX & Alpha) seems not to support Stream access over DAP
