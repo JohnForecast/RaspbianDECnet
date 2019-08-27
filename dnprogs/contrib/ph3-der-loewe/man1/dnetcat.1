@@ -1,0 +1,53 @@
+.TH "dnetcat" "1" "September 2008" "dntools" "User Commands"
+
+.SH NAME
+
+dnetcat \- opens a DECnet connection
+
+.SH SYNOPSIS
+
+dnetcat {\-h|\-\-help}
+
+dnetcat [\-v] [\-z] node[::|[::] ]object
+
+dnetcat [\-v] [\-f] \-l object
+
+.SH "DESCRIPTION"
+\fBdnetcat\fR is a \fBnetcat\fR(1) like tool that opens a DECnet connection and
+copies all data between the standard input/output to/from the socket.
+
+.SH OPTIONS
+.SS "\-v"
+Be verbose. Prints useful (debug) messages.
+.SS "\-z"
+Zero IO mode. In this mode a connection is dropped directly after it is opened.
+This can be used to scan if the remote side listens on the given address and object.
+.SS "\-l"
+Listen mode. In this mode \fBdnetcat\fR accepts connections on the given object.
+.SS "\-f"
+Fork on new connection. This let netcat accept multiple connections in listen mode.
+This is ignored if \fB\-l\fR is not given.
+.SS "\-\-help, \-h"
+Prints a small help.
+
+.SH EXAMPLES
+This program can be used as 'ProxyCommand' for \fBssh\fR(1).
+You may use it via command line like this:
+ ssh \-o 'ProxyCommand dnetcat %h ssh' [...] mynode
+
+or you may use it in your \fB~/.ssh/config\fR like this:
+ Host *::
+ ProxyCommand dnetcat %h ssh
+
+This will enable you to connect to any DECnet node by adding "::" at
+the end of the node name like this:
+ ssh mynode::
+
+For more information on \fBssh\fR(1) see it's manpage.
+
+.SH SEE ALSO
+\fBssh\fR(1),
+\fBnetcat\fB(1).
+
+.SH AUTHORS
+This program is written by Philipp "ph3-der-loewe" Schafft <lion@lion.leolix.org>.
