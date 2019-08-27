@@ -1,0 +1,1 @@
+## make.mrc - Make library of functions for reading and writing VAX format data#            for Macintosh PowerPC using Apple MPW C (MrC).## MPW command syntax: make.mrc [ all | libvaxdata | clean ]## -opt speed (optimize for speed) -ansi strict (strict ANSI)Set CC     "MrC"Set CFlags "-opt speed -ansi strict"Execute make.macos9

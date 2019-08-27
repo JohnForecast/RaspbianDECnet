@@ -1,0 +1,17 @@
+An OpenVMS command procedure has been provided to compile libvaxdata on either
+OpenVMS/VAX or OpenVMS/Alpha using DEC/Compaq/HP C.
+
+To create libvaxdata.o from here:
+
+   $ @make [ all | libvaxdata | clean ]
+
+The default make target is all.  The library and all object files will be
+written to a subdirectory named for the system architecture returned by the
+DCL lexical function F$GetSYI( "ARCH_NAME" ).
+
+To link a C program with the library:
+
+   $ Link program,[here.arch]libvaxdata/Library
+
+substituting the path to the library for here.arch (assuming it has not been
+moved or copied somewhere else).

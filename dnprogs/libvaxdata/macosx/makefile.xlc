@@ -1,0 +1,14 @@
+#
+# makefile.xlc - Make library of functions for reading and writing VAX format
+#                data for Macintosh OS X using IBM XL C (xlc).
+#
+# Shell command syntax:
+#
+#    make -f makefile.xlc [ all | libvaxdata | test | clean ]
+#
+# -O3 (intensive optimization) -qlanglvl=stdc89 (strict ANSI)
+# -D_ANSI_SOURCE (for signal.h) -D_POSIX_SOURCE (for {ppc,i386}/endian.h)
+CC     = xlc
+CFLAGS = -O3 -qlanglvl=stdc89 -D_ANSI_SOURCE -D_POSIX_SOURCE
+
+include makefile.macosx

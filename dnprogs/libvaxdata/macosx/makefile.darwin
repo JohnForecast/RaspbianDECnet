@@ -1,0 +1,88 @@
+################################################################################
+#                                                                              #
+# makefile.darwin - Make library of functions for reading and writing VAX      #
+#                   format data for Macintosh OS X.                            #
+#                                                                              #
+# Shell command syntax: make -f makefile.darwin \                              #
+#                            [ CC="c_compiler" ] \                             #
+#                            [ CFLAGS="c_compiler_flags" ] \                   #
+#                            [ all | libvaxdata | clean ]                      #
+#                                                                              #
+#                                                                              #
+# Author:      Lawrence M. Baker                                               #
+#              U.S. Geological Survey                                          #
+#              345 Middlefield Road  MS977                                     #
+#              Menlo Park, CA  94025                                           #
+#              baker@usgs.gov                                                  #
+#                                                                              #
+# Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver-   #
+#                 sion Routines, US Geological Survey, Open-File Report no.    #
+#                 2005-XXX, nn p.                                              #
+#                                                                              #
+#                                                                              #
+#                                 Disclaimer                                   #
+#                                                                              #
+# Although  this  program has been used by the USGS, no warranty, expressed or #
+# implied, is made by the USGS or the  United  States  Government  as  to  the #
+# accuracy  and  functioning  of the program and related program material, nor #
+# shall the  fact  of  distribution  constitute  any  such  warranty,  and  no #
+# responsibility is assumed by the USGS in connection therewith.               #
+#                                                                              #
+#                                                                              #
+# Modification History:                                                        #
+#                                                                              #
+#  2-Sep-2005  L. M. Baker      Original version (from make.libvfbb).          #
+# 12-Oct-2005  L. M. Baker      Use custom compile rule for is_little_endian.  #
+#                                                                              #
+################################################################################
+
+# GNU C
+# -O3 (highest level of optimization) -ansi (strict ANSI)
+#CC     = gcc
+#CFLAGS = -O3 -ansi
+
+# IBM XL C
+# -O3 (intensive optimization) -qlanglvl=stdc89 (strict ANSI)
+# -D_ANSI_SOURCE (for signal.h) -D_POSIX_SOURCE (for {ppc,i386}/endian.h)
+#CC     = xlc
+#CFLAGS = -O3 -qlanglvl=stdc89 -D_ANSI_SOURCE -D_POSIX_SOURCE
+
+# powerpc on IBM PowerPC; ??? on Intel x86
+ARCH = `uname -p`
+
+LIB_NAME = libvaxdata
+
+OBJS = from_vax_i2.o       from_vax_i2_.o      from_vax_i4.o       \
+       from_vax_i4_.o      from_vax_r4.o       from_vax_r4_.o      \
+       from_vax_d8.o       from_vax_d8_.o      from_vax_g8.o       \
+       from_vax_g8_.o      from_vax_h16.o      from_vax_h16_.o     \
+       to_vax_i2.o         to_vax_i2_.o        to_vax_i4.o         \
+       to_vax_i4_.o        to_vax_r4.o         to_vax_r4_.o        \
+       to_vax_d8.o         to_vax_d8_.o        to_vax_g8.o         \
+       to_vax_g8_.o        to_vax_h16.o        to_vax_h16_.o       \
+       is_little_endian.o  is_little_endian_.o
+
+VPATH = ../../src
+
+all:		$(LIB_NAME)
+
+$(LIB_NAME):
+	test -d $(ARCH) || mkdir $(ARCH)
+	cd $(ARCH) ; $(MAKE) -f ../makefile.darwin \
+	                     CC="$(CC)" \
+	                     CFLAGS="$(CFLAGS)" \
+	                     $(LIB_NAME).a
+	cd $(ARCH) ; $(RM) $(OBJS)
+
+$(LIB_NAME).a:	$(OBJS)
+	ar -r -c $(LIB_NAME).a $(OBJS)
+	ranlib $(LIB_NAME).a
+
+is_little_endian.o:	is_little_endian.c
+	$(CC) -c -o $@ $?
+
+is_little_endian_.o:	is_little_endian_.c
+	$(CC) -c -o $@ $?
+
+clean:
+	cd $(ARCH) ; $(RM) -f $(LIB_NAME).a $(OBJS)

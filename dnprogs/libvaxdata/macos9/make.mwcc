@@ -1,0 +1,1 @@
+## make.mwcc - Make library of functions for reading and writing VAX format data#             for Macintosh PowerPC using Metrowerks CodeWarrior C (mwcc).## MPW command syntax: make.mwcc [ all | libvaxdata | clean ]## -opt all (optimize for speed) -ansi on (strict ANSI)Set CC     "mwcc"Set CFlags "-opt all -ansi on"Execute make.macos9

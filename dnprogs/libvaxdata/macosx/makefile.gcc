@@ -1,0 +1,13 @@
+#
+# makefile.gcc - Make library of functions for reading and writing VAX format
+#                data for Macintosh OS X using GNU C (gcc).
+#
+# Shell command syntax:
+#
+#    make -f makefile.gcc [ all | libvaxdata | test | clean ]
+#
+# -O3 (highest level of optimization) -ansi (strict ANSI)
+CC     = gcc
+CFLAGS = -O3 -ansi
+
+include makefile.macosx
