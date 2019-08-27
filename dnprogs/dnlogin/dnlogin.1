@@ -1,0 +1,66 @@
+.TH DNLOGIN 1 "October 21 2005" "DECnet utilities"
+
+.SH NAME
+dnlogin \- Connect as a terminal to a DECnet system
+
+.SH SYNOPSIS
+.B dnlogin
+[options] nodename
+.br
+Options:
+.br
+[\-Vh] [\-d level] [\-e char]
+.br
+.SH DESCRIPTION
+.PP
+dnlogin connects to a remote DECnet system.
+.br
+ 
+.br
+This application implements the CTERM protocol over DECnet for connecting to
+a remote DECnet host. It expects to be run from a VT100-compatible terminal.
+.br
+dnlogin is a replacement for the old "sethost" program.
+
+
+.SH OPTIONS
+.TP
+.TP
+.I "\-e <char>"
+Set the exit character. By default this is ^]. You can specify the exit character as a
+control character by preceding it with a circumflex eg (^A means control-A) or as 
+a number in decimal (default), octal (starting with a zero), or hexadecimal (preceded
+by 0x or 0X).
+.TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of the package that dnlogin was built with.
+
+.SH EXAMPLES
+.br
+Connect to remote VAX host named "mv3100".
+.br
+
+.br
+.PP
+    dnlogin mv3100
+.br
+
+.SH HELPFUL HINTS
+The CTERM specifications available from Digital does not include how to setup 
+VMS terminal characteristics, so the host cannot identify the capabilities of
+the session we are creating. The simplest workaround is to set the terminal
+capabilities manually upon login or including the following command in the
+.B login.com 
+DCL procedure.
+
+.B $ SET TERM/DEC_CRT
+
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnping "(1)" 

@@ -1,0 +1,109 @@
+.TH DNDIR 1 "September 20 1998" "DECnet utilities"
+
+.SH NAME
+dndir \- Display VMS directories
+
+.SH SYNOPSIS
+.B dndir
+[options] directory
+.br
+Options:
+.br
+[\-sdpbolcntVh] [\-w width] [\-f filename width]
+.SH DESCRIPTION
+.PP
+dndir displays the contents of directories on VMS systems.
+.br
+It behaves similarly to the 
+.B ls
+command in that, by default, it will display filenames in columns across
+the screen if the output is a TTY or in a single column otherwise.
+Options can be added to the command line to display more information about
+the files or to adjust the column widths.
+.br
+The directory name should be in the usual transparent DECnet format of 
+node"user password"::directory (see
+.B EXAMPLES
+). If a wildcard specification is omitted from the command line then *.*;* is
+assumed.
+.br
+As with the 
+.B dncopy
+and
+.B dntype
+commands, the VMS file specification should be enclosed in single quote marks
+to protect special characters from the shell.
+
+.SH OPTIONS
+.TP
+.I "\-s"
+Shows the VMS file size in 512-byte blocks or bytes if the 
+.B \-b
+switch is present.
+.TP
+.I "\-d"
+Shows the file creation date.
+.TP
+.I "\-p"
+Shows the file protection.
+.TP
+.I "\-o"
+Shows the file's owner.
+.TP
+.I "\-b"
+Shows the file size in bytes rather than 512 byte blocks
+.TP
+.I "\-l"
+Long format \- shows all of the above (including the file size in bytes)
+.TP
+.I "\-t"
+Show the total number of blocks in all the files listed. Note that this works even
+if you did not ask for the size to be displayed.
+.TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
+.I "\-e"
+Show (nearly) everything about the file. Like DIR/FULL
+.TP
+.I "\-n"
+Do not show the header line with the VMS directory name on it. This is
+useful for embedding dndir in a pipeline.
+.TP
+.I \-c
+Force the output to single column even on a TTY.
+.TP
+.I \-w N
+Sets the width of a column to be 
+.B N
+characters. The default is 22. This option only has an effect on the brief
+(default) output to a TTY device.
+.TP
+.I \-f N
+Sets the width of the displayed filename to be
+.B N
+characters. The default is 18. If the filename is longer than this number then
+any requested file attributes will be displayed on the next line.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of the tools package that dncopy comes from.
+.SH EXAMPLES
+
+  dndir 'myvax::'
+.br
+
+.br
+  dndir 'tramp"christine pjc123"::[.pics.cats]*.jpg'
+.br
+
+.br
+  dndir 'trisha"system \-"::sys$system:*.exe'
+  Prompts for a password rather than typing it on the command line.
+  
+.SH SEE ALSO
+.BR dntype "(1), " dncopy "(1), " dndel "(1), " dntask "(1), " dnsubmit "(1), " dnprint "(1)"
+

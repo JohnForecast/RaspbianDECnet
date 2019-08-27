@@ -1,0 +1,109 @@
+.TH DNETD.CONF 5 "5 December 1999"  "DECnet for Linux"
+.SH NAME
+/etc/dnetd.conf \- DECnet objects file
+.SH DESCRIPTION
+.B /etc/dnetd.conf
+is an ASCII file which contains the description of the objects known to the
+DECnet super-server 
+.B dnetd.
+.PP
+There is one entry per line, and each line has the format:
+.sp
+.RS
+Name  Number Authenticate User command
+.RE
+.sp
+The field descriptions are:
+.sp
+.RS
+.TP 1.0in
+.I Name
+The name of the object. For numbered objects this appears only for 
+documentation purposes. For named objects it is the actual object name. There
+is a special object name
+.B *
+which can execute an arbitrarily named program or script (see later). 
+.TP
+.I Number
+the DECnet object number. These numbers should match the well-known object
+numbers in a VMS object database. If the object number is zero then the name
+is used. There should be no duplicate object numbers in the file apart from 
+number 0.
+.TP
+.I Authenticate
+Whether to authenticate incoming connections. This flag should be
+a Y or N. If it is Y then incoming connections will be authenticated either by
+the username and password given on the remote command line or by the DECnet
+proxy database
+.B decnet.proxy.
+If it is N then the next field specifies the username that the daemon will
+be run as.
+.TP
+.I Username
+The username that daemon will be run as if the incoming command is not
+authenticated (ie the Authenticate flag is set to N). if this username does
+not exist, and Authenticate is set to N then incoming connections for that
+object will fail.
+.TP
+.I Command
+This is the name and arguments of the command to run when a connection is
+received for the object. If it is the string "internal" then the object will
+be handled by dnetd if it can. Currently only MIRROR and arbitrary TASKs can
+be handled internally by dnetd.
+.br
+If the name starts with a slash then it is assumed to be the full path
+of the program to run. If not then 
+.B dnetd
+will search its default directory for program files.
+
+.SH NOTES
+
+When an incoming connection is handled by dnetd it forks and executes the 
+command named in the command field with stdin and stdout pointing to the
+DECnet socket. stderr will be set to /dev/null. The DECnet daemons supplied
+in the dnprogs suite automatically detect this and so can be run from dnetd or
+standalone.
+.br
+There is a subtle difference between objects handled by the special name * and
+those explicitly named in the file:
+.br
+Objects handled by name "*" internally are run under control of a pseudo-tty
+which means they appear to be talking to a terminal and CR/LF conversion will
+be done so that TYPE "0=TASK" will produce sensible output on VMS.
+.br
+Objects explicitly named just connect directly to the DECnet socket so cannot
+take advantage of tty services and do not have CR/LF conversion done for
+them. Of course these objects are more secure because the system administrator
+has total control over which objects can be run.
+.br
+.br
+dnetd will convert all task names to lower case. This is for convenience more
+than anything else because VMS converts them to uppercase and all uppercase
+files names are unwieldy on Unix.
+.br
+It is recommended that arbitrary objects be run as a special anonymous user
+to avoid security problems.
+.br
+Any changes to /etc/dnetd.conf will take effect immediately you do not need
+to tell dnetd that it has changed.
+
+.SH EXAMPLE
+This is the default file provided. Note that the "*" object is commented out
+for security reasons.
+.nf
+.ft CW
+.in +3n
+# /etc/dnetd.conf
+#
+# name         number     auth?     user       command
+#
+FAL            17         Y         none       fal
+MIRROR         25         Y         root       internal
+MAIL           27         N         vmsmail    vmsmaild
+CTERM          42         N         root       ctermd
+DTERM          23         N         root       rmtermd
+# *               0         Y         none       internal
+.ft
+
+.SH SEE ALSO
+.BR decnet.proxy "(5), " dnetd "(8)"

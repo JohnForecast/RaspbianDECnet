@@ -1,0 +1,51 @@
+.TH DNDEL 1 "October 2 1998" "DECnet utilities"
+
+.SH NAME
+dndel \- Delete a file on a VMS system
+.SH SYNOPSIS
+.B dndel
+[options] file-name
+.br
+Options:
+.br
+[\-ivVh]
+.SH DESCRIPTION
+.PP
+.B dndel
+deletes files held on VMS systems. The filename parameter may specify a single
+file or a wildcard (remember to use VMS wildcards).
+
+If you specify 
+.B \-i
+or
+.B \-v
+then dndel will open two connections to the VMS machine (much as VMS itself 
+does). Otherwise it will attempt to use a single connection. One side-effect
+of this is that the deletion process will fail at the first file that cannot
+be deleted.
+.SH OPTIONS
+.TP
+.I "\-i"
+Interactive. Prompt before deleting a file.
+.TP
+.I "\-v"
+Verbose. Print the names of files that have been deleted
+.TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of the tools package that dndel comes from.
+
+.SH EXAMPLES
+
+  dndel \-i 'myvax::oldfile;*'
+
+.br
+  dndel 'tramp"christine pjc123"::interactive'
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dncopy "(1), " dntask "(1) ," dnsubmit "(1), " dnprint "(1)"

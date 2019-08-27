@@ -1,0 +1,93 @@
+.TH DNETD 8 "December 5 1999" "DECnet utilities"
+
+.SH NAME
+dnetd \- DECnet Super-server
+.SH SYNOPSIS
+.B dnetd
+[options]
+.br
+Options:
+.br
+[\-dvVhs] [\-l logtype] [\-p dir]
+.SH DESCRIPTION
+.PP
+.B dnetd
+is a daemon that serves incoming connections from remote systems. 
+.br
+.B dnetd
+reads the file
+.B /etc/dnetd.conf
+to determine which daemons are run in response to which objects. See the man
+page for dnetd.conf(5) for more information on the format of this file.
+.br
+dnetd can also run scripts or programs on the Linux system that match the 
+TASK name on
+an object name. eg if the connection from VMS was "TASK=showproc" then the
+program "showproc" will be run and the output (stdout only)
+sent back to the calling process. Note that dnetd always converts the task
+name into lower case.
+.br
+.B dnetd
+looks for it's scripts in three locations:
+.br
+a) In the user's home directory (unless the 
+.B -s
+switch was specified.
+.br
+b) In the directory pointed to by the environment variable DNTASKDIR (if that
+variable exists when the daemon is started)
+.br
+c) In /usr/local/decnet/tasks
+.br
+.B dntaskd
+should be started at system boot time (after DECnet has been started) and
+must be run as root.
+.br
+dntaskd reads the 
+.B decnet.proxy(5)
+file to authenticate users who do not provide usernames when connecting.
+
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose dnetd will be. Don't use 
+more than one for normal operation because it will seriously impair 
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I -s
+Run in "secure" mode. This just prevents users from running scripts in their
+home directories. (so it's not really that secure!)
+.TP
+.I "\-p <directory name>"
+Specifies the default directory name to search for programs named in
+.B dnetd.conf(5).
+By default dnetd will look in the directory named by $(prefix)/sbin when it
+was compiled. This is /usr/local/sbin if you compiled from unmodified sources
+or /usr/sbin if you installed a binary distribution.
+.TP
+.I "\-l"
+Set logging options. The following are available:
+.br
+.B -lm
+Log to /dev/mono. (only useful if you have my mono monitor driver and a
+second monitor)
+.br
+.B -le
+Log to stderr. Use this for debugging or testing combined with
+.B -d.
+.br
+.B -ls
+Log to syslog(3). This is the default if no options are given.
+.TP
+.I \-V
+Show the version of dnetd.
+
+
+.SH SEE ALSO
+.BR decnet.proxy "(5), " dnetd.conf "(5)"
