@@ -1,0 +1,54 @@
+.TH DNDEL 1 "October 2 1998" "DECnet utilities"
+
+.SH NAME
+dnsubmit \- Submit a batch job on a VMS system
+.br
+dnprint \- Print a file on a VMS system
+.SH SYNOPSIS
+.B dnsubmit
+[options] file-name
+.br
+.B dnprint
+[options] file-name
+.br
+Options:
+.br
+[\-vh]
+.SH DESCRIPTION
+.PP
+.B dnprint 
+and
+.B dnsubmit
+send files to a VMS machine for printing or batch execution.
+These command behave similarly to the VMS PRINT/REMOTE and SUBMIT/REMOTE
+commands in that you get very little control of the queueing mechanism.
+.br
+dnprint always prints to the queue SYS$PRINT and dnsubmit always submits
+to SYS$BATCH. Of course you can always redirect these queues using
+logical names.
+.br
+See the man page for 
+.B dncopy 
+for a discussion of VMS file specifications.
+
+.SH OPTIONS
+.TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of the tools package that the program comes from.
+
+.SH EXAMPLES
+
+  dnsubmit 'myvax::myjob.com'
+
+.br
+  dnprint 'tramp"christine pjc123"::file.lis'
+
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dncopy "(1), " dntask "(1), " dndel "(1)"
