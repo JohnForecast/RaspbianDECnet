@@ -523,10 +523,10 @@ ScanData (FILE *datei, char *fname, int *errcode,
   char *line=uuscan_sdline, *bhds1=uuscan_sdbhds1, *bhds2=uuscan_sdbhds2;
   static char *ptr, *p2, *p3=NULL, *bhdsp, bhl;
   int bhflag=0, vflag, haddh=0, hadct=0;
-  int bhrpc=0, bhnf=0, c, hcount, lcount, blen;
+  int bhrpc=0, bhnf=0, c, hcount, lcount, blen=0;
   int encoding=0, dflag=0, ctline=42;
   int dontcare=0, hadnl=0;
-  long preheaders, oldposition;
+  long preheaders=0, oldposition;
   size_t dcc, bhopc;
 
   *errcode = UURET_OK;
@@ -1101,8 +1101,8 @@ fileread *
 ScanPart (FILE *datei, char *fname, int *errcode)
 {
   int ecount, hcount, lcount;
-  int bhflag, begflag, vflag, blen, res;
-  long preheaders, prevpos, preenc, before;
+  int bhflag, begflag, vflag, blen=0, res;
+  long preheaders, prevpos=0, preenc, before;
   char *line=uuscan_spline;
   fileread *result;
   char *ptr1, *ptr2;
