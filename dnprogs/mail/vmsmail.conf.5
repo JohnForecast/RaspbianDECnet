@@ -1,0 +1,38 @@
+.TH VMSMAIL.CONF 5 "30 December 1998"  "DECnet for Linux"
+.SH NAME
+/etc/vmsmail.conf \- VMSmail configuration file
+.SH DESCRIPTION
+.B /etc/vmsmail.conf
+is an ASCII file which contains names and values of configuration variables
+for the VMSmail gateway programs.
+.PP
+There is one entry per line, and each line has the format:
+.sp
+.RS
+<name>=<value>
+.RE
+.sp
+Valid values for <name> are
+.sp
+.RS
+.TP 1.0in
+.I hostname
+The name of the gateway machine (to put in the mail header). Defaults to
+the value returned by
+.B gethostname(2).
+.TP
+.I username
+The name of the user associated with sending mail from VMS to Linux. 
+Defaults to vmsmail.
+.TP
+.I smtphost
+The name of the SMTP mail host to send mail to. If this entry is omitted
+them vmsmaild will send mail by running 'sendmail' on the local machine.
+.TP
+.SH EXAMPLE
+.nf
+.ft CW
+.in +3n
+hostname=myhost.domain.net
+username=vms
+.ft

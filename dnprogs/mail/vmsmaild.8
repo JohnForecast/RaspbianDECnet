@@ -1,0 +1,69 @@
+.TH VMSMAILD 8 "Decembet 26 2000" "DECnet utilities"
+
+.SH NAME
+vmsmaild \- mail daemon for DECnet
+.SH SYNOPSIS
+.B vmsmaild
+[options]
+.br
+Options:
+.br
+[\-vVhfU] [\-l logtype] 
+.SH DESCRIPTION
+.PP
+.B vmsmaild
+is a daemon that forwards incoming VMSmail (or mail11) message to Unix users.
+It should be started at system boot time (after DECnet has been started) and
+must be run as root. It is recommended that you run vmsmaild from 
+.B dnetd(8)
+.br
+The options below affect the behaviour of vmsmaild. If you are using
+.B dnetd
+then these options should be specified in the
+.B dnetd.conf(5)
+file.
+.br
+
+.SH OPTIONS
+.TP
+.I "\-l"
+Set logging options. The following are available:
+.br
+.B -lm
+Log to /dev/mono. (only useful if you have my mono monitor driver or mdacon
+and a second monitor)
+.br
+.B -le
+Log to stderr. Use this for debugging or testing combined with
+.B -d.
+.br
+.B -ls
+Log to syslog(3). This is the default if no options are given.
+.TP
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose vmsmaild will be. 
+Don't use more than one for normal operation because it will seriously impair 
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of vmsmaild.
+.TP
+.I \-f
+Accepts mail send with the MAIL/FOREIGN command. Setting this option 
+complicates the decoding of all mail message quite substantially because the
+remote end thinks it is talking to a VMS machine that understands RMS file
+formats. Only use this option if you really need it.
+.TP
+.I \-U
+Don't check that the reply user exists when starting up. If you only want to
+use linux as a recipient of mail from VMS systems and don't want to create a 
+vmsmail user then set this option. See the Documentation/mail.README file
+for more information on setting up a mail gateway.
+
+
+.SH SEE ALSO
+.BR decnet.proxy "(5), " dnetd "(8), " dnetd.conf "(5)

@@ -1,0 +1,17 @@
+.TH SENDVMSMAIL 8 "January 15 2001" "DECnet utilities"
+
+.SH NAME
+sendvmsmail \- mail forwarder for DECnet
+.SH SYNOPSIS
+.B sendvmsmail
+.SH DESCRIPTION
+.PP
+.B sendvmsmail
+Is the mail forwarding program that sends Unix mail messages to VMSmail on an OpenVMS(R)
+System. It should be the default destination of the "vmsmail" user. The usual way to do this
+is to create a .forward file in that user's home directory with the following contents:
+
+| /usr/sbin/sendvmsmail
+
+.SH SEE ALSO
+.BR vmsmaild "(8), " dnetd "(8), " dnetd.conf "(5)
