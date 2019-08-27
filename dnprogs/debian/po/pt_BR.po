@@ -1,0 +1,177 @@
+# Debconf translations for dnprogs.
+# Copyright (C) 2015 THE dnprogs'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the dnprogs package.
+# Adriano Rafael Gomes <adrianorg@arg.eti.br>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dnprogs 2.64\n"
+"Report-Msgid-Bugs-To: chrissie@debian.org\n"
+"POT-Creation-Date: 2011-01-18 15:38+0100\n"
+"PO-Revision-Date: 2015-11-21 20:22-0200\n"
+"Last-Translator: Adriano Rafael Gomes <adrianorg@arg.eti.br>\n"
+"Language-Team: Brazilian Portuguese <debian-l10n-portuguese@lists.debian."
+"org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:1001
+msgid "DECnet node name:"
+msgstr "Nome do nodo DECnet:"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:1001
+msgid ""
+"All nodes on a DECnet network have a node name. This is similar to the IP "
+"hostname but can only be a maximum of 6 characters long. It is common that "
+"the DECnet name is the same as the IP name (if your machine has one). If you "
+"do not know the answer to this question please contact your system "
+"administrator."
+msgstr ""
+"Todos os nodos em uma rede DECnet têm um nome de nodo. Isso é similar ao "
+"nome de máquina IP, mas pode ter no máximo 6 caracteres de comprimento. É "
+"comum que o nome DECnet seja o mesmo que o nome IP (se a sua máquina tiver "
+"um). Se você não sabe a resposta para essa questão, por favor, contate o seu "
+"administrador de sistemas."
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:2001
+msgid "DECnet node address:"
+msgstr "Endereço do nodo DECnet:"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:2001
+msgid ""
+"All nodes on a DECnet network have a node address. This is two numbers "
+"separated with a period (e.g. 3.45) where the first number denotes the area "
+"and the second is the node within that area."
+msgstr ""
+"Todos os nodos em uma rede DECnet têm um endereço de nodo. Ele é formado por "
+"dois números separados por um ponto (por exemplo, 3.45), onde o primeiro "
+"número representa a área e o segundo é o nodo dentro daquela área."
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:2001
+msgid ""
+"Do not make up a number here. If you do not know your DECnet node address "
+"then ask your system administrator."
+msgstr ""
+"Não invente um número aqui. Se você não sabe o seu endereço de nodo DECnet, "
+"então pergunte ao seu administrador de sistemas."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:3001
+msgid "DECnet startup changes your ethernet hardware address"
+msgstr "A inicialização do DECnet modifica o seu endereço de hardware ethernet"
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:3001
+msgid ""
+"The \"setether\" program in this package will change the hardware (MAC) "
+"address of all ethernet cards in your system (by default) to match the "
+"DECnet node address. This is essential for the operation of DECnet and so is "
+"not optional. However, if you have more than one ethernet card you may want "
+"to edit /etc/default/decnet to alter the list of cards whose hardware "
+"addresses are changed."
+msgstr ""
+"O programa \"setether\" nesse pacote modificará o endereço de hardware (MAC) "
+"de todas as placas ethernet no seu sistema (por padrão) para combinar com o "
+"endereço do nodo DECnet. Isso é essencial para a operação da DECnet e, por "
+"esse motivo, não é opcional. Entretanto, se você tem mais do que uma placa "
+"ethernet, você pode querer editar /etc/default/decnet para alterar a lista "
+"de placas para as quais os endereços de hardware são modificados."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:3001
+msgid ""
+"Be aware that any other machines that have your system's MAC address in "
+"their ARP cache may no longer be able to communicate with you via IP "
+"protocols until this cache has timed out or been flushed."
+msgstr ""
+"Esteja ciente de que quaisquer outras máquinas que tenham o endereço MAC do "
+"seu sistema no seu cache ARP podem não mais serem capazes de se comunicar "
+"com você via protocolos IP até que esse cache expire ou seja descartado."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:3001
+msgid ""
+"The MAC address cannot be changed on-the-fly so you will need to reboot your "
+"machine before DECnet can function."
+msgstr ""
+"O endereço MAC não pode ser mudado com o sistema em andamento, por isso, "
+"você precisará reinicializar a sua máquina antes que a DECnet possa "
+"funcionar."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:3001
+msgid ""
+"You should also edit /etc/decnet.conf to add the names and addresses of "
+"DECnet nodes you want to communicate with."
+msgstr ""
+"Você deve também editar /etc/decnet.conf para adicionar nomes e endereços de "
+"nodos DECnet com os quais você quer se comunicar."
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid "Configure DECnet now:"
+msgstr "Configurar DECnet agora:"
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"You can configure your system as a DECnet node now or later. If you have "
+"already set up your system to use DECnet you can skip this and leave the "
+"configuration as it is."
+msgstr ""
+"Você pode configurar o seu sistema como um nodo DECnet agora ou mais tarde. "
+"Se você já configurou o seu sistema para usar DECnet, você pode pular esse "
+"passo e deixar a configuração como está."
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you choose to configure now this will set up your system. This operation "
+"needs to change the MAC address of your network cards, it may work directly "
+"or it may require a reboot. Please close all open connections such as ssh "
+"sessions and downloads before you continue."
+msgstr ""
+"Se você escolher configurar agora, isso configurará o seu sistema. Essa "
+"operação precisa mudar o endereço MAC das suas placas de rede, isso pode "
+"funcionar diretamente ou pode ser preciso uma reinicialização do sistema. "
+"Por favor, feche todas as conexões abertas, tais como sessões ssh e "
+"downloads antes de continuar."
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you opt to configure later you can run this configure step again with: "
+"dpkg-reconfigure dnet-common"
+msgstr ""
+"Se você optar por configurar mais tarde, você pode executar esse passo de "
+"configuração novamente com: dpkg-reconfigure dnet-common"
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you are unsure, select 'configure later' and contact your system "
+"administrator."
+msgstr ""
+"Se você não tem certeza, selecione \"configurar mais tarde\" e contate o seu "
+"administrador de sistemas."
