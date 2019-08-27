@@ -1,0 +1,17 @@
+I give no guarantees that any of the things below will happen but it's my
+list of "ideas" of things to do. It's in rough order of when I think 
+I might start them.
+
+If you have any more ideas or any preferences for the order in which things
+happen then mail me on chrissie_c@users.sourceforge.net. But no promises.
+
+- use dbm/gdbm for /etc/decnet.conf to speed lookups on sites with a large 
+  number of nodes. Possibly also include something like 
+  "NCP COPY KNOWN NODES FROM" so it's easy to maintain.
+
+- Transparent file access: a libc plugin (like zlibc) that provides VMS-like
+  remote file access transparently.
+
+- Management tools: maybe ncp-type stuff (but, then again, ncp has such an
+  appalling command-line I may invent a new one). Remote enabled if possible.
+

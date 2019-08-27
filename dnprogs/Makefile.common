@@ -1,0 +1,176 @@
+# Common Makefile elements and configurable bits
+###############################################################################
+# Where the binaries will be installed
+#
+prefix=/usr/local
+
+#
+# Where the libraries will be installed.
+# If you would prefer this to be /usr/local then you must also add 
+# /usr/local/lib to /etc/ld.so.conf or your LD_LIBRARY_PATH
+#
+libprefix=/usr
+
+# Where the man pages will be installed
+#
+manprefix=/usr/local
+
+#
+# Where the configuration data will be installed
+#
+sysconfprefix=
+
+#
+# Choose your debugging options:
+# -DNO_FORK        will create single-process servers suitable for debugging.
+#                  FAL built like this will *NOT* work with most VMS commands.
+# -DNO_BLOCKING    disable sending of many messages in one block
+#
+DFLAGS=-g -O0
+#DFLAGS=-g -O0 -DNO_FORK
+#DFLAGS=-O2
+
+#
+# This variable determines whether the programs are statically or dynamically
+# linked. By default you get binaries that use the shared libraries. 
+# Uncomment it for static binaries
+#
+#LINKSTATIC=true
+
+#
+#
+# If you are using gcc 2.8+ or egcs you may like to use these flags to 
+# decrease the size of the binary
+#
+#CXXFLAGS += -fno-rtti -fno-exceptions
+
+#
+# For FAL you can redefine the commands used for PRINT/REMOTE and 
+# SUBMIT/REMOTE operations. The defaults, shown below commented out
+# should be fine though.
+# %s is where the filename goes. It MUST be present.
+#
+#CDEFS+=-DPRINT_COMMAND=\"lpr %s\"
+#CDEFS+=-DSUBMIT_COMMAND=\"at -f %s now\"
+
+#------------------------------------------------------------------------------
+# You should not need to change anything below this line
+#------------------------------------------------------------------------------
+
+#Package version
+MAJOR_VERSION=2
+MINOR_VERSION=67
+VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
+
+#
+# OS Name
+#
+OSNAME=$(shell uname -s)
+
+#
+# ARCH code taken from the Linux kernel sources.
+#
+ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
+
+TOP=..
+#
+# For RPM & DEB builds
+#
+ifdef DESTDIR
+rootprefix=$(DESTDIR)/
+prefix=$(DESTDIR)/usr
+libprefix=$(DESTDIR)/usr
+manprefix=$(DESTDIR)/usr/share
+sysconfprefix=$(DESTDIR)
+endif
+
+ifdef BUILDING_DEB
+CPPFLAGS=$(shell dpkg-buildflags --get CPPFLAGS)
+CFLAGS=$(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
+CXXFLAGS=$(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
+LDFLAGS=$(shell dpkg-buildflags --get LDFLAGS)
+endif
+
+#
+# Also for making binary distributions
+#
+ifdef RELEASE
+DFLAGS=-O2
+CXXFLAGS += -fno-rtti -fno-exceptions
+endif
+
+#
+# Look for optional files (who needs autoconf!)
+#
+
+ifeq (/usr/include/shadow.h,$(wildcard /usr/include/shadow.h))
+SHADOWDEFS=-DSHADOW_PWD
+endif
+
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+
+ifeq (/dev/pts,$(wildcard /dev/pts))
+ifeq (/usr/lib/libutil.a,$(wildcard /usr/lib/libutil.a))
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+endif
+
+ifeq (/usr/lib/libutil.so,$(wildcard /usr/lib/libutil.so))
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+endif
+
+ifeq (/usr/lib64/libutil.so,$(wildcard /usr/lib64/libutil.so))
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+endif
+endif
+
+#
+# Miscellaneous compilation flags
+#
+# We assume there is a libcrypt that has the crypt() call in it. This has
+# been true on Linux for ages now.
+LIBCRYPT=-lcrypt
+
+
+CC=gcc
+CDEFS+=-D_XOPEN_SOURCE -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+INCLUDES=-I$(TOP)/libdap -I$(TOP)/include
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
+CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
+
+# Conditional for shared/static libs
+ifdef LINKSTATIC
+LIBDNET=$(TOP)/libdnet/libdnet.a
+LIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a $(LIBCRYPT)
+LIBDAP=$(TOP)/libdap/libdnet-dap.a
+DEPLIBDNET=$(TOP)/libdnet/libdnet.a
+DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a
+DEPLIBDAP=$(TOP)/libdap/libdnet-dap.a
+else
+LIBDNET=-L$(TOP)/libdnet -ldnet
+LIBDAP=-L$(TOP)/libdap -ldnet-dap
+LIBDAEMON=-L$(TOP)/libdaemon -ldnet_daemon $(LIBCRYPT)
+DEPLIBDNET=$(TOP)/libdnet/libdnet.so
+DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.so
+DEPLIBDAP=$(TOP)/libdap/libdnet-dap.so
+endif
+
+ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+STRIPBIN=
+else
+STRIPBIN=-s
+endif
+
+LIBS=$(LIBDAP) $(LIBDNET)
+DEPLIBS=$(DEPLIBDAP) $(DEPLIBDNET)
+
+#
+# Defines for programs that need to know prefix information
+#
+SYSCONF_PREFIX=-DSYSCONF_PREFIX=\"$(sysconfprefix)\"
+BINARY_PREFIX=-DBINARY_PREFIX=\"$(prefix)\"
+
+TMPDIR=/tmp
