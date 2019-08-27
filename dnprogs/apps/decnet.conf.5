@@ -1,0 +1,45 @@
+.TH DECNET.CONF 5 "24 July 1998"  "DECnet for Linux"
+.SH NAME
+/etc/decnet.conf \- DECnet hosts file
+.SH DESCRIPTION
+.B /etc/decnet.conf
+is an ASCII file which contains the description of the executor node
+and other DECnet nodes you plan to communicate with.
+.PP
+There is one entry per line, and each line has the format:
+.sp
+.RS
+Type Address Name_tag Nodename Line_tag Device
+.RE
+.sp
+The field descriptions are:
+.sp
+.RS
+.TP 1.0in
+.I Type
+the type of node. The local node uses "executor". Remote nodes use "node"
+.TP
+.I Address
+the DECnet address.
+.TP
+.I Name_tag
+the constant string "name".
+.TP
+.I Line_tag
+the constant string "line". There must be only one line specified for the
+executor node.
+.TP
+.I Device
+the name of the Ethernet card for DECnet operations. (Usually "eth0").
+.TP
+.SH EXAMPLE
+.nf
+.ft CW
+.in +3n
+#Node     Node     Name  Node    Line  Line
+#Type     Address  Tag   Name    Tag   Device
+#----     -------  ----  ----    ----  ----------
+executor  1.2      name  pclnx   line  eth0
+node      1.1      name  mv3100
+node      1.5      name  pc386
+.ft

@@ -1,0 +1,70 @@
+.TH STARTNET 8 "January 26 2001" "DECnet utilities"
+
+.SH NAME
+startnet \- Start the DECnet protocol on Linux
+
+.SH SYNOPSIS
+.B startnet
+[options]
+.br
+Options:
+.br
+[[\-hw [-f]] [<interfaces>]
+.br
+.SH DESCRIPTION
+.PP
+Starts the DECnet protocol.
+.br
+ 
+.br
+This utility should be run at system startup. It will 
+change the ethernet hardware (MAC) address of any or all ethernet interfaces to
+match the DECnet node address. If you are running Linux 2.2 then you 
+.B must
+run startnet before any DECnet operations will work. For 2.4+ it is optional
+but if you do not run startnet then you must change the ethernet address in some
+other way.
+.br
+By default all ethernet interfaces will have their MAC addresses changed if you
+specify 
+.B -hw.
+startnet will enable (UP) all interfaces it changes the MAC addresses of.
+
+.SH OPTIONS
+.TP
+.I "\-hw"
+Sets the hardware address of the ethernet card(s) to the DECnet node address.
+This can only happen if the interface is not in use (but see below).
+.TP
+.I "\-f"
+If 
+.B -hw
+is specified then the interface will be DOWNed if it is running before changing the
+MAC address rather than giving an error. THIS IS VERY DANGEROUS. IT MAY DISABLE ALL
+TCP/IP COMMUNICATION TO YOUR MACHINE! Only use this flag if you
+.B really
+know what you are letting yourself in for and understand ARP.
+.SH EXAMPLES
+.br
+Start the DECnet protocol on eth0.
+.br
+
+.br
+.PP
+    # startnet -hw eth0
+.br
+
+.SH HELPFUL HINTS
+If you have multiple ethernet cards on your system and they are connected
+to the the same network you should
+specify which one you want to use for DECnet communication on the startnet
+command line, otherwise they will both be given the same MAC address and this
+is probably not what you want.
+.br
+Running DECnet on multiple ethernet interfaces only works under Linux 2.4. If you are
+running Linux 2.2 then the interface name on the startnet command line 
+.B must
+match the one in /etc/decnet.conf(5).
+ 
+.SH SEE ALSO
+.BR decnet.conf "(5), " dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnping "(1)" 

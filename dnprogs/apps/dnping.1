@@ -1,0 +1,90 @@
+.TH DNPING 1 "January 25 2000" "DECnet utilities"
+
+.SH NAME
+dnping \- Loopbacks diagnostic packets through a remote node
+
+.SH SYNOPSIS
+.B dnping
+nodename [user pass] count
+.br
+or
+.br
+.B dnping
+nodename [options] nodename
+.br
+Options:
+.br
+[\dqsv] [\-c number] [\-i interval] [\-p password] [\-s size] [\-u username] [\-w timeout]
+.br
+.SH DESCRIPTION
+.PP
+This utility sends to remote DECnet node
+.B nodename
+the number of packets specified by
+.B count
+to test the link between the two systems. Optionally a
+username and password may be specified for the connection as well as
+several other options. NOTE that if you dnping another Linux box it must
+have
+.B dnetd
+running.
+.br
+NOTE also that dnping is not really like an IP "ping" in that it needs
+a registered object at the other end to connect to. So, just because
+you cannot ping a machine does not, necessarily, mean that machine
+is not available, just that the MIRROR object is not available. There
+is not (to my knowledge) a low-level equivalent in DECnet of the ICMP
+ping message.
+
+.SH OPTIONS
+.TP
+.I "\-c number"
+Number of packets to send (default 10)
+.TP
+.I "\-d"
+Debug mode (default off)
+.TP
+.I "\-i interval"
+interval between packets in microseconds (default 0)
+.TP
+.I "\-p password"
+Access control password. If this is "-" then you will be prompted.
+.TP
+.I "\-q"
+Quiet mode (default off)
+.TP
+.I "\-s size"
+size of frame to send in bytes (40 data + 68 hdr)
+.TP
+.I "-t"
+timestamps mode (default off)
+.TP
+.I "-u username"
+access control username
+.TP
+.I "-w timeout"
+Specifies a timeout (in seconds). If not response is received
+after this time then dnping will abort. The default is to wait
+forever.
+.TP
+.I "-v"
+verbose mode (default off)
+
+.SH EXAMPLES
+.br
+Pings 10 packets through remote node "mv3100"
+.br
+
+.br
+.PP
+    # dnping mv3100 10
+.br
+.br
+Make it look a bit like IP ping:
+.PP
+    # dnping  \-vti 1000000 marsha
+.br
+
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), "
+.BR sethost "(1), "  dnetd "(8)"

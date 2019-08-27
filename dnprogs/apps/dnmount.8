@@ -1,0 +1,53 @@
+.TH DNMOUNT 1 "Aug 28 1998" "DECnet utilities"
+
+.SH NAME
+dnmount \- Mounts DEC/VMS directories as Linux Filesystems
+
+.SH SYNOPSIS
+.B dnmount
+[options] VMS_DIRECTORY mount_point
+.br
+Options:
+.br
+[\-h] [\-u uid] [\-g gid] 
+
+.br
+-h prints a help screen
+.br
+-u specifies UID for mounted filesystem.
+.br
+-g specifies GID for mounted filesystem.
+
+.SH DESCRIPTION
+.PP
+dnmount mounts VMS directories structures as Linux Filesystems.
+.br
+ 
+.br
+The VMS_DIRECTORY should be specified in the usual transparent DECnet format
+of node"username password"::[directory] or node.
+.br
+
+.SH EXAMPLES
+.br
+
+.br
+.PP
+    dnmount -u serrat 'mv3100::sys$manager:' /vax
+
+.PP
+    dnmount  'mv3100"serrat passwrd"::sys$login:' /vaxuser
+.br
+
+
+.PP
+    dnmount  'mv3100"system passwrd"::dka0:[sys0]' /vax
+
+.br
+.SH HINTS
+.br
+    Use umount to dismount a dapfs mounted with dnmount.
+
+.SH AUTHOR 
+.br
+    Eduardo Marcelo Serrat <emserrat@geocities.com>

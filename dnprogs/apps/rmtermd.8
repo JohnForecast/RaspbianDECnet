@@ -1,0 +1,85 @@
+.TH RMTERMD 8 "July 27 1998" "DECnet utilities"
+
+.SH NAME
+rmtermd  \- Old style DECnet terminal services for Linux  
+
+.SH SYNOPSIS
+.B rmtermd 
+.br
+[options]
+.br
+Options:
+.br
+[\-dvVh] [\-l logtype]
+.SH DESCRIPTION
+.PP
+Allows remote PDP-11 users to connect as a terminal over DECnet.
+.br
+ 
+.br
+This application implements the DTERM protocol over DECnet for allowing a 
+remote DECnet host emulating a DEC VT100 terminal to connect to
+Linux.  DTERM is the old OS-dependent network terminal protocol that
+predates CTERM; it is needed to support access from PDP-11 systems,
+which do not support CTERM.  Note that this daemon implements the
+TOPS-20 variant of that protocol; the client at the other end has to
+speak that version.  For example, under DECnet/E (for RSTS/E) you have 
+to use the "unsupported" multi-protocol version of "set host".
+.br
+
+.br
+Normally this daemon will be run from dnetd(8) rather than by hand.
+
+.SH OPTIONS
+.TP
+.I "\-l"
+Set logging options. The following are available:
+.br
+.B -lm
+Log to /dev/mono. (only useful if you have my mono monitor driver or mdacon
+and a second monitor)
+.br
+.B -le
+Log to stderr. Use this for debugging or testing combined with
+.B -d.
+.br
+.B -ls
+Log to syslog(3). This is the default if no options are given.
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose rmtermd will be.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of rmtermd.
+
+.SH EXAMPLES
+.br
+Starting the rmtermd daemon/Connecting to linux from a PDP-11.
+.br
+
+.br
+.PP
+On Linux:
+
+   # rmtermd  
+
+On the PDP-11:
+
+   $ set host pclnx
+
+   Rmtermd Version 1.0.0
+   DECnet for Linux
+
+   login:
+
+.br
+
+.SH SEE ALSO
+.BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), "
+.BR ctermd "(8), " dnetd "(8), " dnping "(1), " sethost "(1), " dnetd.conf (5)
