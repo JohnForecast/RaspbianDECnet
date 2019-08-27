@@ -1,0 +1,72 @@
+.TH DECnet  7 2011-11-24 "Linux Man Page" "Linux Programmer's Manual"
+.SH NAME
+DECnet \- Linux DECnet protocol implementation
+.SH SYNOPSIS
+.B #include <sys/socket.h>
+.br
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h> \fR/* access to system databases */
+
+.sp
+.IB decnet_socket " = socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP);"
+
+.SH DESCRIPTION
+Linux implements DECnet, Phase IV.
+.PP
+The programming interface is BSD sockets compatible.
+For more information on sockets, see
+.BR socket (7).
+
+.SH "ADDRESS FORMAT AND NODE NAMES"
+On DECnet each system in the network is called a "node". A node has an address and
+normally a node name. The Node name is a six character long string
+(for example: "mynode" or "node33"). The address consists of an area and a node part.
+Both parts are seperated by a period (for example: 1.10, 5.12, 42.768).
+The area part is 6 bits long (0-63) and the node part is 10 bits long (0-1023).
+This results in a 16 bit address. area zero as well as node zero is reserved for
+special purpose and is invalid for real node addesses.
+.PP
+The node address is normally packed into two bytes. The six most significant bits
+of the upper byte are the area while the lower two bits as well as the eight bits are
+the node part. On ethernet the node address directly mapps to a fixed MAC address.
+The MAC address is the packed node address prefixed by AA:00:04:00.
+For example the node 5.126 has a fixed MAC address of AA:00:04:00:7E:14.
+.PP
+Services are called objects on DECnet. They are identified by number or name.
+Each object has a eight bit number called the object number.
+Objects with a object number other than zero are assigned to fixed protocols.
+No other protocol must be used with those numbers.
+.br
+Objects with a object number of zero are identified by object name.
+The name is a string of up to sixteen bytes. Is does not need to be terminated
+by zero. Such a name is no alias to a hidden object number but the identifier
+as transmitted over the wire. Because of this there is no need to register
+those names anywhere.
+
+.SH "SOCKET OPTIONS"
+.SH SYSCTLS
+.SH IOCTLS
+.SH NOTES
+As DECnet needs to set the MAC address of the used interfaces it MUST be started before
+protocols are started using the MAC address for other tasks than lowlevel addressing.
+This includes IP and DHCP. Some operating system vendors randomly messes up with the
+startup order of services. This can result in non working networks.
+
+.SH ERRORS
+.SH COMPATIBILITY
+The DECnet protocol is supported by upstream kernel since 2.4.
+There was patches for older kernels as well.
+.br
+The on-wire protocol is fully compatible with the specifications and implementations
+by DEC and other vendors for VMS and other systems.
+.PP
+Some higher protocols are implemented by the same userland package (dnprogs)
+as the base implementation of DECnet itself. For the status of those
+protocol implementations see the individual documentation.
+
+.SH BUGS
+
+
+.SH "SEE ALSO"
+.BR socket (7)

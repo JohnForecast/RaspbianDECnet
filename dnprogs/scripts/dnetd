@@ -1,0 +1,77 @@
+#!/sbin/runscript
+#
+# /etc/init.d/dnetd
+#
+# Starts/Stops DECnet processes
+#
+# description:  DECnet.
+# processname: dnetd
+# config: /etc/decnet.conf
+#
+#
+# This script should go in
+#  /etc/init.d for Gentoo Linux
+#
+# You can install it using the following command:
+#
+# rc-update add dnetd default
+#
+# -----------------------------------------------------------------------------
+#
+
+depend() {
+	before net.${ETHER}
+}
+
+checkconfig() {
+     [[ ! -f /etc/decnet.conf ]] && echo $"DECnet not started as it is not configured." && return 1
+
+     # If there is no DECnet in the kernel then try to load it.
+     [[ ! -f /proc/net/decnet ]] && modprobe decnet
+     [[ ! -f /proc/net/decnet ]] && echo $"DECnet not started as it is not in the kernel." && return 1
+}
+
+start() {
+	local myopts="/var/run/${SVCNAME}.pid"
+
+        checkconfig || (echo "not checked good" && return 1) 
+     	#echo -n $"Starting DECnet: "
+     	NODE=`grep executor /etc/decnet.conf| awk '{print $2}'`
+     	echo "$NODE" > /proc/sys/net/decnet/node_address
+     	CCT=`grep executor /etc/decnet.conf | awk '{print $6}'`
+     	echo "$CCT" > /proc/sys/net/decnet/default_device
+     	$prefix/sbin/setether $NODE $CCT $extra_interfaces 
+        ebegin "Starting ${SVCNAME}"
+	
+	     for i in $daemons
+	     do
+	       echo "	starting $i";
+	       start-stop-daemon --start --startas $prefix/sbin/$i --name dnetd
+	      # echo -n $" `eval echo $startecho`"
+	     done
+	     #echo $"$startendecho"
+
+        eend $?
+}
+
+stop() {
+        ebegin "Stopping ${SVCNAME}"
+        start-stop-daemon --stop --quiet --exec dnetd
+        eend $?
+}
+
+reload() {
+        ebegin "Reloading ${SVCNAME}"
+        start-stop-daemon --stop --quiet --pidfile /var/run/${SVCNAME}.pid \
+                --signal HUP
+        eend $?
+}
+
+
+restart() {
+	svc_stop
+	svc_start
+        eend $?
+}
+
+

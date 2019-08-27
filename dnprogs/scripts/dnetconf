@@ -1,0 +1,61 @@
+# Dnetd config file for gentoo
+# DECnet services
+# Daemons to start. You may remove the ones you don't want
+
+daemons="dnetd"
+#daemons="dnetd phoned"
+
+# Prefix for where the progs are installed. Either /usr or /usr/local
+# depending on whether a certain use flag was set during emerge.
+
+prefix=/usr/local
+
+# Please set this to the same interface as the default one that
+# has been specified in the /etc/decnet.conf file
+# this is only used for the /etc/init.d/dnetd file
+ETHER=eth2
+
+# Interfaces to set the MAC address of. By default only the default
+# interface in /etc/decnet.conf will be set. If you want to setup
+# more interfaces for DECnet than add them here.
+
+extra_interfaces=""
+
+# DON'T EDIT THESE YET!
+# Various variables
+
+startendecho=""
+stopendecho="done."
+
+# INFORMATION ON STARTING DNETD FROM /etc/conf.d/local.start
+# 
+# Here is an example from my own machine that I use to get the
+# service started in the bootup process
+
+# bring the interface down
+# ifconfig your_default_interface down
+
+# run the dnetd startup script
+# /etc/init.d/dnetd start
+
+# bring the interface backup
+# ifconfig your_default_interface up
+
+# make sure the default interface is known to the kernel
+# echo "your_default_interface" > /proc/sys/net/decnet/default_device
+
+# make sure this hosts node name is known to the kernel
+# echo "mynodename" > /proc/sys/net/decnet/node_name
+
+# echo make sure this hosts node address is known to the kernel
+# echo mynodeaddress > /proc/sys/net/decnet/node_address
+
+# re-add the default gateway is your gateway is set manually or is static
+# route add default gw default_gw
+
+# Add neighbors to the default interface with addresses of remote_node_address(1-3) 
+# to the kernel
+# ip -f dnet neigh add remote_node_address1 dev default_interface
+# ip -f dnet neigh add remote_node_address2 dev default_interface
+# ip -f dnet neigh add remote_node_address3 dev default_interface
+

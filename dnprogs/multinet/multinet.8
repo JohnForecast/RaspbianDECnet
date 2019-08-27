@@ -1,0 +1,72 @@
+.TH MULTINET 8 "March 30 2006" "DECnet utilities"
+
+.SH NAME
+multinet \- Connect to a Multinet* DECnet over IP server
+
+.SH SYNOPSIS
+.B multinet
+[options] <local-decnet-addr> <remote-host>
+.br
+.SH DESCRIPTION
+.PP
+This utility creates a tapX device and copies all the DECnet packets
+from that over IP to a remote Multinet* server. It provides a way to connect
+a Linux box to a remote VMS machine over an IP-only network. Using Linux
+routing it should be possible to connect DECnet networks over the internet using
+this technique.
+.br
+.B local-decnet-addr
+DECnet node address of the tapX interface. This need not be the same as the
+address used on other interfaces but it might be less confusing if it is.
+.br
+.B remote-host
+IP address or host name of the remote Multinet server. If you send a HUP signal to the process it will lookup this name again, so you don't need to restart the server if the remote node changes its IP address.
+.br
+.br
+.br
+.TP
+*Multinet is a product, and probably a trademark, of Process Software. 
+http://www.process.com and is available free for hobbyist use.
+.br
+The protocol used here was reverse engineered by Mark Berryman and Christine Caulfield.
+.SH OPTIONS
+.TP
+.I "\-v" 
+Be verbose and dump packet contents to stderr
+.TP
+.I "\-1"
+Advertise as a level 1 router
+.TP
+.I "\-2"
+Advertise as a level 2 router (default)
+.TP
+.I "\-D"
+Make the tapX device into the default DECnet device. This will force
+all traffic to non-local nodes down the Multinet link.
+IMPORTANT: Due to a kernel bug you should not use this option unless
+you are using a Linux kernel version 2.6.17 or later.
+.TP
+.I "\-p priority"
+Router priority. Default is 64
+.TP
+.I "\-P port"
+Port to talk to Multinet on (default is 700). Ony change this if you know
+the Multinet server is listening on a different port
+.TP
+.I "\-m MTU"
+Maximum size of packets. (default 576)
+.TP
+.I "-t secs"
+Timeout for IP connections. If no traffic is seen on the IP connection after
+this time then the daemon will attempt to restart it.
+.TP
+.I "-H hello timer"
+How often HELLO messages are sent (default 60) in seconds.
+
+.SH EXAMPLES
+.br
+  multinet \-1 \-D 3.2 zarqon.tykepenguin.com
+
+.SH SEE ALSO
+.BR dnroute "(8), " ip "(8)"
+

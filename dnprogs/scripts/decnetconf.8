@@ -1,0 +1,23 @@
+.TH DECNETCONF 8 "January 15 2001" "DECnet utilities"
+
+.SH NAME
+decnetconf \- Simple configuration script for DECnet
+.SH SYNOPSIS
+.B decnetconf
+.SH DESCRIPTION
+.PP
+.B decnetconf
+Is a simple configuration tool for DECnet. It prompts you for your host (executor)
+name, node address and ethernet interface. It then asks for a node name in turn
+and writes these to a temporary file. When you have finished (by pressing enter on
+an empty line) the newly created file willbe copied to /etc/decnet.conf.
+.br
+This script is only really useful for the initial set up of a DECnet system,
+once 
+.B /etc/decnet.conf 
+has been populated it is easier to edit it by hand because this script will 
+overwrite any onformation in it.
+
+
+.SH SEE ALSO
+.BR decnet.conf "(5)"

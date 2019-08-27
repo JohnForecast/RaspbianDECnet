@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# rc.decnet
+#
+# Starts DECnet processes on a slackware system
+#
+# This script should go in /etc/rc.d
+#
+# This script MUST be run before TCP/IP is started unless you have a DEC
+# TULIP based ethernet card.
+#
+# -----------------------------------------------------------------------------
+#
+# Daemons to start. You may remove the ones you don't want
+#
+prefix="/usr/local"
+daemons="dnetd phoned"
+
+#
+# the -hw flag to startnet tells it to set the hardware address of the ethernet
+# card to match the DECnet node address. You probably don't need this if you
+# are using the tulip or de4x5 drivers for your ethernet card. If you are
+# unsure just leave it as it is.
+#
+startnet="$prefix/sbin/startnet -hw"
+
+echo -n "Starting DECnet: "
+$startnet
+if [ $? != 0 ]
+then
+ echo error starting socket layer.
+ exit 1
+fi
+
+#
+# Start daemons
+#
+for i in $daemons
+do
+  $prefix/sbin/$i
+  echo -n " $i"
+done
+echo "."
+
+exit 0
