@@ -1,0 +1,152 @@
+Note: This document describes the installation of DECnet support on Raspbian
+Buster for the Raspberry Pi. This is mostly a manual build and install from
+sources.
+
+The kit may be obtained by:
+
+    git clone https://github.com/JohnForecast/RaspbianDECnet
+
+
+In order to bring up DECnet on Raspbian you will need to compile and install
+a new kernel along with its associated modules and dtb files.
+
+1. Clone the RaspbianDECnet repository described above. For the rest of this
+   document we'll assume that it is cloned into your home directory so it will
+   be located in a ~/RaspbianDECnet directory.
+
+2. Installing a new kernel
+
+   Follow the instructions available at:
+
+          <https://www.raspberrypi.org/documentation/linux/kernel/building.md>
+
+   with the following modifications:
+
+   2.1 After cloning the Linux sources
+
+       We will assume that the Linux sources are cloned into a ~/linux
+       directory. Copy the DECnet sources into the linux source directory:
+
+          cp ~/RaspbianDECnet/kernel/include/net/*.h ~/linux/include/net
+          rm -rf ~/linux/net/decnet
+          cp -r ~/RaspbianDECnet/kernel/net/decnet ~/linux/net
+
+   2.2 After creating the default build configuration
+
+       You will need to enable DECnet in the kernel build. I have only tested
+       DECnet as a loadable module. Use one of the Linux configuration
+       option (e.g. make config or make menuconfig) to change the kernel
+       configuration.
+
+          Networking support --->
+             Networking options --->
+                DECnet support
+
+       note: DECnet: router support has not been tested.
+
+   Follow the remainder of the kernel build and installation guide. After a
+   reboot the system will include DECnet support but it will not be active yet.
+
+3. Change the MAC address of the ethernet device
+
+   The easiest way to do this is to change it before IPV4 or IPV6 is loaded.
+   Create a file called /etc/systemd/network/00-mac.link with:
+
+          [Match]
+          OriginalName=eth0
+
+          [Link]
+          MACAddress=aa:00:04:00:xx:yy
+          NamePolicy=kernel database onboard slot path
+
+   This assumes that you want to change the MAC address of eth0 - change as
+   needed for your system. Note: you can use the address converter at
+
+      <http://www.powerdog.com/addrconv.cgi>
+
+   to convert a DECnet address to its associated MAC address.
+
+   This procedure has been tested to work on the Raspberry Pi Zero W wireless
+   adapter.
+
+4. Build and install the userland code
+
+         cd ~/RaspbianDECnet/dnprogs
+         make all
+         sudo make install
+
+   This will result in user applications and manpages being installed in the
+   /usr/local tree.
+
+   Note that there are some compile-time warnings generated in the
+   mail/uulib directory.
+
+5. Build the DECnet configuration database (/etc/decnet.conf)
+
+         sudo /usr/local/sbin/decnetconf
+
+   This will ask for the name and address of the node you are configuring and
+   will allow you to specify the name and address of other nodes in your
+   network. After setting up the configuration you will need to change the
+   protection on the configuration database:
+
+         sudo chmod 644 /etc/decnet.conf
+
+6. Startup DECnet at system boot time
+
+   If you wish to start DECnet every time the system boots, add the following
+   to /etc/rc.local before the "exit 0" line:
+
+       modprobe decnet
+       echo area.node >/proc/sys/net/decnet/node_address
+       dnetd
+
+   Where area.node is your node address and will have been used above to          set the MAC address of the ethernet adapter.
+
+7. Startup DECnet on request
+
+   Create a shell script with the following:
+
+       #!/bin/bash
+
+       sudo modprobe decnet
+       sudo bash -c 'echo area.node >/proc/sys/net/decnet/node_address'
+       sudo dnetd
+
+   Where area.node is your node address and will have been used above to set
+   the MAC address of the ethernet adapter.
+
+
+Changes from previous DECnet for Linux releases:
+
+   1. Previous versions incorrectly accepted zero value for area and/or node
+      via the kernel /proc interface although the decnetconf script
+      mentioned above disallowed it.
+
+   2. Special handling has been added for connections to area 0:
+
+              0.0      - Means connect to the local node
+              0.n      - Means connect to node n in the local node's area
+
+   3. By default, DECnet-Linux uses the VMS syntax for specifying access
+      control information for the file access utilties (dndir, dntype, dncopy
+      etc):
+
+              node"username password account"::filespec
+
+      which needs to be quoted so that it is not interpreted by the shell:
+
+              'node"username password account"::filespec'
+
+      If the environment variable USE_ULTRIX_SYNTAX is defined, DECnet-Utltrix
+      syntax is used:
+
+              node/username/password/account::filespec
+
+Systems Tested (all running the 2019-7-10 version of Raspbian Buster):
+
+Raspberry Pi Zero W
+
+Raspberry Pi 2B V1.1
+
+Raspberry Pi 4B (2 GB)
