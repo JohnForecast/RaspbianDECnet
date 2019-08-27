@@ -78,9 +78,6 @@ a new kernel along with its associated modules and dtb files.
    This will result in user applications and manpages being installed in the
    /usr/local tree.
 
-   Note that there are some compile-time warnings generated in the
-   mail/uulib directory.
-
 5. Build the DECnet configuration database (/etc/decnet.conf)
 
          sudo /usr/local/sbin/decnetconf
