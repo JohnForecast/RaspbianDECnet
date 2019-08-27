@@ -1,0 +1,161 @@
+.TH FAL 8 "May 6 1999" "DECnet utilities"
+
+.SH NAME
+fal \- File Access Listener for DECnet
+.SH SYNOPSIS
+.B fal
+[options]
+.br
+Options:
+.br
+[\-dvVhmt] [\-l logtype] [\-a auto-type] [\-f <auto-file>] [\-r <virtual-root>]
+.SH DESCRIPTION
+.PP
+.B fal
+is a daemon that serves incoming DAP (Data Access protocol) connections from
+remote systems. It enables transparent file access to files from OpenVMS
+machines using standard DECnet syntax.
+It should be started at system boot time (after DECnet has been started) and
+must be run as root.
+.br
+The file names output by
+.B fal
+will adapt depending on the sytax of files that are requested
+of it. If VMS-style filenames are requested then VMS-style filenames will
+be returned. If Unix-style filenames are requested then Unix-style (native)
+filenames will be returned. Note that to force fal to display the contents of
+a directory with Unix-style names the name must end in a slash or have some
+form of wildcard character in it.
+.br
+When returning VMS-style filenames, all names will be converted to upper case,
+directories will have .DIR appended to them and all filenames will have a
+version number of 1.
+In addition fal will construct a volume and directory syntax for the directory
+that will look familiar to VMS users. Of course it also understands this
+syntax when files and directories are requested of it. One of the problems with
+this is that Unix filenames with non-VMS syntax (eg double dots or "funny"
+characters) or files with uppercase letter in their names will not be accessible
+from VMS using VMS syntax. You must use Unix syntax to access these files through
+FAL.
+.br
+The options below affect the behaviour of fal. If you are using
+.B dnetd
+then these options should be specified in the
+.B dnetd.conf(5)
+file.
+.br
+By default all files sent by fal will be sent in STREAMLF format. This is
+configurable by the many command-line switches detailed below.
+
+.SH OPTIONS
+.TP
+.I "\-l"
+Set logging options. The following are available:
+.br
+.B -lm
+Log to /dev/mono. (only useful if you have my mono monitor driver or mdacon
+and a second monitor)
+.br
+.B -le
+Log to stderr. Use this for debugging or testing combined with
+.B -d.
+.br
+.B -ls
+Log to syslog(3). This is the default if no options are given.
+.TP
+.I "\-a"
+Set algorithm for automatically selecting file types.
+.br
+.B -ag Guess file type based on first few bytes
+.br
+.B -ae Check file extension against a table
+.br
+By default all files will be sent/received as STREAMLF
+.TP
+.I "\-f <filename>"
+Specify the filename used to check file extensions. Only valid with
+.B -ae.
+The format if the file is simple:
+.br
+extension  <b/r> <block size>.
+.br
+In fact, 'r' is more of a comment than an instruction but it may be
+used in future to support proper variable-length record files.
+.br
+By default an internal table is used with some common file extensions. It is
+as follows:
+.br
+.nf
+ #Generic types
+ .txt  r
+ .c    r
+ .cc   r
+ .log  r
+ .html r
+ # VMS types
+ .com  r
+ .lis  r
+ .bck  b 32256
+ .save b 8192
+ .exe  b 512
+ .zip  b 512
+ #Linux types
+ .tar  b 10240
+ .gz   b 512
+ .tgz  b 512
+ .bz2  b 512
+ # End of file
+.fi
+
+.TP
+.I "\-u"
+Enable users to override the two above options with a .fal_auto file in her/his
+home directory. This file should contain a single word:
+.B guess, ext
+or
+.B none.
+Note that
+.B -u
+and a .fal_auto file takes effect even if no
+.B -a
+option is present.
+.TP
+.I "\-m"
+Use the meta-file directory (normally named .fal) to store file attributes. Metafiles
+will override any guessed or checked file attributes.
+.TP
+.I "\-t"
+Instruct FAL for look for .$ADF$ files created by the NFS Client in TCP/IP
+for VMS V5.0+ and use them to get file attributes. This option can be used
+with the
+.B -m
+and
+.B -a
+flags in which case a .$ADF$ takes precedence over a fal metafile or a guessed
+file type.
+.TP 
+.I "\-r <virtual root>"
+Run FAL in a "virtual root". All file accesses will be done below this directory
+rather than the normal root filesystem. ie access for "/" or "SYSDISK:[000000]"
+will start at the specified directory. Requests for ".." will be refused.
+NOTE: This is not a chroot, fal still runs in the normal filesystem. also note
+that this will lose the ability to access users home directories: all users doing
+a "DIR LINUX::*.*" from VMS will see the virtual root instead.
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose fal will be. Don't use
+more than one for normal operation because it will seriously impair
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of fal.
+
+
+.SH SEE ALSO
+.BR decnet.proxy "(5), " dnetd "(8), " dnetd.conf "(5), " dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnsubmit "(1), " dnprint "(1)"

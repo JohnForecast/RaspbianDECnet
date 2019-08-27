@@ -1,0 +1,143 @@
+VMSmail gateway for Linux
+-------------------------
+
+Definitions
+-----------
+The "gateway machine" is a Linux system that runs both vmsmaild and has a
+vmsmail user set up for forwarding mail from Linux to VMS. You really only
+need one of these machines on a (DECnet) network though there is no harm in 
+setting up more to provide redundancy.
+
+The "gateway user" is a user on the gateway machine. This user exists only to
+forward mail to VMS so it should not be an existing Linux user. All mail
+sent to the gateway user will be forwarded to VMS. If a failure occurs
+during this forwarding (eg the address is not a valid VMS user address) 
+then a delivery failure message will be sent to the originating user.
+
+Installation
+------------
+Installing the VMSmail gateway for linux is slightly more complicated than
+just copying the files and starting a daemon (though you need to do that
+too!)
+
+After going through the normal "make; make install" routine you will have
+a running vmsmaild daemon and a mail forwarding program (sendvmsmail) in
+/usr/local/sbin. This will allow users to send mail from VMSmail to Linux 
+users.
+
+To enable Linux (or other TCP/IP mail) users to send to VMSmail you need to
+set up a VMSmail gateway username on the Linux machine that is to be the
+gateway - this is usually just one machine in the network, the one that
+also runs vmsmaild. I recommend you call this user 'vmsmail'. If you
+prefer to call it something else you will need to add an entry to the
+configuration file (see later).
+
+After creating this user you should create a file in its default directory
+called .forward containing the single line:
+
+|/usr/local/sbin/sendvmsmail
+
+This causes all mail send to the 'vmsmail' user to be piped through the
+sendvmsmail command which will attempt to send the message to a VMS system.
+
+If you don't want to create a username for forwarding on your system you can
+add the following entry to your /etc/aliases file:
+
+vmsmail: |/usr/local/sbin/sendvmsmail
+
+and run the command 'newaliases'. Again, you can change the name 'vmsmail' to
+anything you like as long as it is specified in the /etc/vmsmail.conf file.
+If you use this method you should start the vmsmaild daemon with the -U flag
+to stop it checking for the existance of the username in /etc/passwd.
+
+Configuration file
+------------------
+By default the VMSmail gateway programs use the function gethostname(2) to
+determine the system's name when forming mail addresses. If you find this
+is not returning the name you need then you can change the name by editting
+the /etc/vmsmail.conf file. 
+
+Similarly the name 'vmsmail' is the default username for forwarding from
+Linux to VMS, If you don't like this then the configuration file allows
+you to change it.
+
+The /etc/vmsmail.conf file takes three, optional, entries
+
+hostname=<host name>
+username=<user name>
+smtphost=<hostname>
+
+eg:
+
+hostname=myhost.domain.net
+username=vms
+smtphost=mail.demon.co.uk
+
+The 'username' entry must always match the username you are using for 
+forwarding or mail sending/replying will fail.
+
+The smtphost entry instructs the daemon to send mail directly using SMTP. If
+this line is omitted it will use /usr/sbin/sendmail on the local machine.
+
+If you change any of the entries while the system is running you will need
+to restart the vmsmaild daemon.
+
+Sending mail from VMS to Linux
+------------------------------
+
+This is dead easy, simply mail to host::user (eg linux::christine) and the mail
+will be sent.
+
+You can also send to any SMTP accessible email address, suppose your Linux
+box is connected to the internet and is called 'linux', you can mail me from 
+VMS by using the following address:
+
+linux::"christine.caulfield@googlemail.com"
+
+
+Sending mail from Linux to VMS
+------------------------------
+
+This is the slightly more complicated bit. Mail sent from VMS via the gateway
+will automatically have the correct return address set in the header.
+
+If you want to send a message to a VMS user from the gateway machine then 
+send the message to 'vmsmail' with the VMS mail specification where the 
+user's full name would go. eg:
+
+vmsmail (node::user) 
+or
+node::user <vmsmail>
+
+if you are on another machine then the format is similar:
+
+vmsmail@linux (node::user)
+or
+node::user <vmsmail@linux>
+
+Note that if you have changed the vmsmail user in /etc/vmsmail.conf then you
+will also need to change the username 'vmsmail' in the mail address.
+
+eg:
+
+Sending to VMS user SYSTEM on node BIGVAX
+
+vmsmail@linux (BIGVAX::SYSTEM)
+
+If there are any failures in sending the message then a failure message will
+be sent to the originating user.
+
+KNOWN PROBLEMS
+--------------
+All this assumes you have a working mail system on your Linux box. If you
+haven't then all bets are off. Before sending problem reports to me 
+PLEASE, PLEASE, PLEASE make sure that you can send mail between users
+on your Linux box and (ideally) between it and other Linux/Unix boxes on
+the same network.
+
+I have noticed some problems using the 'mail' program on Solaris sending
+mail to the gateway - it seems that it doesn't like the multi-part names.
+dtmail and mailx seem to work fine though so use those (mailx is a 
+proper replacement for mail anyway).
+
+With Eduardo's kernel, binary files will only work if you start vmsmaild seperately - they will not work if you run vmsmaild from dnetd.

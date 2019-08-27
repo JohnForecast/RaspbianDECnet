@@ -1,0 +1,23 @@
+This program needs a kernel that supports the SDF_WILD flag. That means
+a 0.0.12 patch for kernels 2.2 or the latest 2.3 dev kernel.
+
+dnetd is the DECnet super-server, a sort of cross between inetd in Unix and
+NETACP on VMS. It listens for incoming connections and runs daemons to service
+them based on entries in the /etc/dnetd.conf file which is analogous to the
+DECnet object database on VMS.
+
+dnetd has two internal functions, one is mirror (this used to be the dnmirror
+daemon) and the other is capable of running arbitrary named tasks.
+
+dnetd is optional - the daemons supplied will still run standalone if you 
+prefer and if you stop them and start dnetd it will automatically take over;
+you do not need to recompile.
+
+dnetd uses the SDF_WILD flag in the kernel - this means that is answers 
+connections for any objects not already listening so you can set up any
+combination of always-running daemons and occasionally running daemons you
+like without changing the configuration file. If you kill a standalone daemon
+then dnetd will automatically take over you do not need to restart it or change
+its config file...much easier than inetd!
+
+See the man pages dnetd(1) and dnetd.conf(5) for more information.

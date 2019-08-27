@@ -1,0 +1,236 @@
+librms is work-in-progress at the moment but the aim is to provide 
+good (whatever that means) and easy access (whatever *that* means) to RMS 
+files on VMS machines from Linux.
+
+The API is a hybrid of the RAB/FAB SYS$OPEN/SYS$GET interface of RMS itself
+and the open/read/write interface of Unix. In all cases the FAB or RAB 
+arguments to the functions below are optional for straightforward sequential
+access but some basic use of RABs(at least) will be necessary to read/update
+indexed files.
+
+The rms_* functions are accessed by an opaque structure RMSHANDLE returned by 
+rms_open. All the functions, apart from rms_open, take this structure as their
+first argument. You should not assume anything about the value of this 
+structure or its content as I may well change it in future.
+
+rabdef.h and fabdef.h have been provided unmodified from the GNU C distribution
+for VMS and are installed into /usr/include.
+
+You will need to compile your programs with the -fdollars-in-identifiers switch
+(otherwise you will get loads of compilation errors!) and also link with
+libdap. You may also need to link with the C++ libraries because libdap is
+written in C++. However, your applications can be in 'just' C.
+
+The "text based" API allows more user-friendly access to RMS files with a
+VAXC/PASCAL like interface - see near the bottom of this file for more
+information.
+
+There are example.c and example_t.c files provided which do nothing very 
+useful but may serve as a guide to using the functions.
+
+I recommend that RABs and FABs be cleared using memset (or allocated using
+calloc) before use because, although the whole structure is not currently 
+used, I may add functionality in the future that uses fields that are 
+currently unused.
+
+For full information on the values in RABs and FABs see the VMS manual
+"Record Management Services Reference".
+
+Please let me know what you think of this library and any other functions
+you think you might need. It's not (very) difficult for me to add features
+because all the hard work has already been done in libdap.
+
+THE API
+-------
+
+>>> RMSHANDLE rms_open(char *name, int mode, struct FAB *);
+
+Open an RMS file on a VMS system. The name should include the remote node
+name and any necessary access control in the usual format. mode is the
+usual Unix open mode but may be overridden or augmented by the contents of
+the FAB structure if it is not NULL. The return value is an opaque handle that
+should be passed to the other API functions. If rms_open() fails it returns 
+NULL and you can call rms_openerror to get the text explaining the failure.
+
+FAB fields honoured:
+
+fab$b_fac
+fab$b_shr
+fab$b_rfm
+fab$b_rat
+
+The following fields will be filled in on return:
+fab$b_org
+fab$l_alq
+fab$w_deq
+fab$b_rat
+fab$b_rfm
+fab$l_jnl
+fab$w_mrs
+fab$l_mrn
+fab$b_fsz
+
+>>> char *rms_openerror(void);
+
+Returns the text of the error caused by the last rms_open failure. If no
+failure has occurred then NULL will be returned.
+
+
+>>> int   rms_close(RMSHANDLE h);
+
+Close the file referenced by the handle.
+
+
+>>> int   rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB*);
+
+Read the next record in the file. If fields are set in the RAB then 
+the system may lookup a record on the file by key, record number or RFA and 
+return that.
+
+RAB fields honoured
+
+rab->rab$b_rac 
+rab->rab$l_rop
+rab->rab$l_kbf    Key value
+rab->rab$b_ksz    If this is 0 then strlen will be called on the key value
+rab->rab$b_krf    Key number
+
+Returns -1 if the function failed for any reason, or a positive number 
+indicating the number of bytes read. 0 indicates end-of file only if 
+rms_lasterr() contains "EOF". if not then you have just read an empty record!
+The best way to check for an empty record is (res == 0 && !rms_lasterr()). If
+you get a return of 0 and rms_lasterr() is non-NULL then you have reached the
+end of the file.
+
+If the record just read is larger than 'maxlen' then the return value will be
+the negative value of the actual size of the record and buf will not
+be altered. You should then call rms_read() again with a buffer big enough to 
+hold this record.
+
+
+>>> int   rms_find(RMSHANDLE h, struct RAB *);
+
+Same as rms_read() but no data is read. Used for positioning within the file.
+
+
+>>> int rms_write(RMSHANDLE h, char *buf, int maxlen, struct RAB*);
+
+Add a record to the file (rms $PUT).
+RAB fields as for rms_read()
+
+
+>>> int rms_update(RMSHANDLE h, char *buf, int maxlen, struct RAB*);
+
+Update a record to the file (rms $UPDATE).
+RAB fields as for rms_read()
+
+
+>>> int rms_delete(RMSHANDLE h, struct RAB *);
+
+Delete a record to the file (rms $DELETE).
+RAB fields as for rms_read()
+
+
+>>> int rms_rewind(RMSHANDLE h, struct RAB *);
+
+Rewind the file back to the beginning.
+
+
+>>> int rms_truncate(RMSHANDLE h, struct RAB *);
+
+Truncate a sequential file here.
+
+
+>>> char *rms_lasterror(RMSHANDLE);
+
+Returns the text of the last error that occurred on this handle.
+
+
+>>> int rms_lasterrorcode(RMSHANDLE);
+
+Returns the DAP status code of the last error that occurred on this handle.
+
+
+Be aware that RMS warnings or status messages can cause rms_write to return
+-1 so after any write operation it is wise to call rms_lasterrorcode() and
+check for errors that are not really errors. One example of such an "error"
+is adding a record start creates a duplicate secondary key. The write
+operation has completed successfully but returns -1. 
+
+librms should check for these conditions but there are rather a lot of them
+so currently it doesn't. Sorry.
+
+
+
+THE TEXT_BASED API
+------------------
+This is an attempt at a more friendly access to RMS for those more familiar
+with VAXC or PASCAL. It replaces all that nasty, messy RAB/FAB business with
+a text string containing the options you want. You pay a processing overhead
+for this convenience, of course, but its probably minimal compared to the
+line time. The functions are the same as those above except that they start
+rms_t_ rather than rms_ and take a char* rather than a RAB or a FAB. You
+can freely mix and match the text and RAB/FAB based functions as you like
+because they all use the same RMSHANDLE structure internally.
+
+The options are case-blind and comma separated. If the option value
+contains a quote or a comma then enclose the value in double quotes. A quote 
+in the value itself should be doubled - or you can use single quotes:
+
+eg
+
+rms_t_find(handle, "krf=2,key=CHRISSIE,rop=\"rlk,kge\"");
+
+or
+
+rms_t_find(handle, "krf=2,key=CHRISSIE,rop='rlk,kge'");
+
+You can also specify the values to keys as variables in a printf-type way eg:
+
+rms_t_find(handle, "krf=%d,key=%s,rop='rlk,kge'", keynum, keybuf);
+
+is functionally identical to the line above (if keynum==2 and keybuf=="CHRISSIE").
+To specify a binary key you need to do the following incantation:
+
+rms_t_find(handle, "ksz=%d,key=%*s,kop=kge", keylen, keylen, key);
+
+ksz= *MUST* be specified before key= and the length must be passed in twice:
+once to ksz= and once to replace the * in %*s so that librms knows how much data
+to copy into its internal buffer. This form of substitution only works for values, not
+keys so parameters of the form "%s=%d" are not valid.
+
+
+For more information on the particular function see the description of
+the non _t functions above.
+
+>>> RMSHANDLE rms_t_open(char *name, int mode, char *options);
+
+Options can be:
+fac=put,del,get,upd,del
+shr=put,del,get,upd,del
+rfm=udf,fix,var,vfc,stm,stmcr,stmlf
+rat=ftn,cr,prn,blk
+
+You can't retrieve file information from this call as the FAB fields
+filled in by rms_opn() are lost.
+
+>>> int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options);
+
+rac=seq,key,rfa 
+rop=eof,fdl,uif,hsh,loa,ulk,tpt,rah,wbh,kge,kgt,nlk,rlk,bio,nxr,wat,rrl,rea,kle,kgt
+kbf    Key value
+krf    Key number
+key    is an alias for kbf (to aid readability)
+kop    is an alias for rop (to aid readability when you just need key options)
+
+If you use key= or kbf= then rac=key is implied
+
+Similarly for the others, with RAB replaced by the options string.
+
+
+DEBUGGING
+---------
+Because librms uses the same DAP functions as dncopy,fal & friends it has
+the same debug/logging code available. Simply set the LIBRMS_VERBOSE 
+environment variable to some number (1 is the default) and you will
+get message logging to stderr.

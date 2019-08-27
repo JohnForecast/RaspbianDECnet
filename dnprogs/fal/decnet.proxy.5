@@ -1,0 +1,58 @@
+.TH DECNET.CONF 5 "8 August 2002"  "DECnet for Linux"
+.SH NAME
+/etc/decnet.proxy \- DECnet proxy file
+.SH DESCRIPTION
+.B /etc/decnet.proxy
+is an ASCII file which contains mappings of remote DECnet users to local
+users. It is used by
+.B fal(8)
+when no username and password have been
+explicitly given to determine whether a user is allowed to access files and
+also whose files they will get access to.
+.PP
+There is one entry per line, and each line has the following format:
+.sp
+.RS
+node::remoteuser localuser
+.RE
+.sp
+The field descriptions are:
+.sp
+.RS
+.TP 1.0in
+.I node
+The name or number of the remote node. If this is a name it must appear in
+.B decnet.conf(5)
+otherwise a DECnet node address should be used. This field is a regular expression:
+If you want to match a single nodename then you must use the anchors ^ and $ either side
+of the name.
+.TP
+.I remoteuser
+a regular expression that may match one or more remote user names. If you want
+to match a single user then you must use the anchors ^ and $ either side of
+the name.
+.TP
+.I localuser
+The name of a user on the local machine or a single asterisk (*) in which case
+the remote username will be substituted.
+.BR
+.PP
+Comments start with a hash mark and continue to the end of that line. They may
+be on a dedicated line or following an entry.
+
+.SH EXAMPLE
+.nf
+.ft CW
+.in +2n
+ #/etc/decnet.proxy
+ # proxy configuration for fal.
+ #
+ ^tramp$::^test$ christine  # Explicitly convert 'test' on tramp to 'christine'
+ ^zaphod$::.*    none     # Disable proxies from zaphod (assuming you don't
+                          #   have a user called 'none')
+ .*::.* decnet            # Like a default DECnet account
+ .*::.* *                 # Equivalent to VMS *::* * proxy (make this last
+                          #   if you use it)
+.br
+.SH SEE ALSO
+.BR fal "(8), " decnet.conf "(5)"

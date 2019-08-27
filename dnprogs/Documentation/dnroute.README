@@ -1,0 +1,18 @@
+This is dnroute - the DECnet routing daemon
+
+What it will do is to send out level 1 or 2 routing messages containing the
+local neighbour information for this node. If you enable routing
+for your kernel then this daemon will make it look as though it can
+route DECnet packets to other DECnet nodes. It will also, optionally,
+send level 2 routing messages showing which other areas can be seen.
+Additionally it sets up area routes to remote areas that are seen via these 
+messages and adjusts those routes according to the relative cost of each route.
+
+Use the ip command to show the routes set up by the daemon and report any
+problems.
+
+  ip -D route
+
+NOTES:
+echo "1" into /proc/sys/net/decnet/conf/eth<x>/forwarding
+echo "1" into /proc/sys/net/decnet/conf/eth<x>/priority (Must NOT be 0)

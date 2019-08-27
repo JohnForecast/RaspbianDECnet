@@ -1,0 +1,225 @@
+This is FAL, a DECnet File Access Listener for Linux
+
+This document aims to explain some of the concepts behind the things mentioned
+on the man page. You should use the man page as a source of reference and this
+file as a source of learning.
+
+FAL aims to make files on your Linux box available to nodes on a DECnet
+network. When installed users on OpenVMS machines will (subject to access
+restrictions) be able to access Linux files as easily as other VMS files.
+It also supports the PRINT/REMOTE and SUBMIT/REMOTE commands so you can print
+VMS files on printers attached to your Linux box and run batch jobs (the 
+default command for batch jobs is 'at' but it can be changed at compile time).
+
+
+CONFIGURING ACCESS CONTROL
+--------------------------
+By default all users who want to access files via FAL will have to provide a
+username and password on the command line. If you want you can use the DECnet
+proxy database feature of FAL to automatically map remote users onto local
+ones.
+
+The DECnet proxy file (/etc/decnet.proxy) behaves in a similar manner to the
+OpenVMS proxy database in that you can specify remote nodes and usernames
+either explicitly or using wildcards and then indicate which local user
+should be used for thos remote accesses. eg:
+
+^tramp$::^christine$ christine
+
+The line above says that if I connect from my VMS machine tramp to the Linux
+machine without providing a username and password then I will be given  access
+to my files on the Linux machine. Not the regex anchors ^ and $ on the remote
+node name and username, that's because those two fields are actually POSIX
+regular expressions. This may look odd at first but gives you a lot of
+flexibility in specifying proxies. eg:
+
+^cls00[0-4]$::^b.* *
+
+This allow access from any user name starting with b when logged into machine
+cls000 cls001 cls002 cls003 or cls004 to access local files. Note that all user
+names and node names are converted to lower case before comparison.
+
+If you want to make this the case for all users on your network (ie. all VMS
+users who also have an account on the Linux machine will be able to access
+their files without providing a password) then you can use a line such as:
+
+.*::.* *
+
+
+The last * on the line is not a wildcard, it is just a special character
+that FAL uses to mean "the username on the remote system". If no such user
+exists on the local system the access will be denied.
+
+You can use this last feature to deny access to specific groups of users. eg.
+
+.*::^guest$ none
+^www$::.*   none
+
+Will deny access to all guest users and also to all users on the machine www.
+This, of course, assumes you have no username called none on your machine.
+If you have then pick another name but try to make it descriptive so you
+know what it means.
+
+The proxy database is read when a connection is made and the entries
+are checked in the order they appear in the file. The first entry that matches
+the remote connection's username and nodename will be used. Because of this
+you should take care with the order in which the entries appear. For instance
+if the entry '.*::.* *' appears at the beginning then all users will get 
+proxy access regardless of any entries lower down in the file.
+
+
+TYPE CONVERSIONS
+---------------
+By default FAL makes all Linux files appear as STREAMLF files. This is by
+far the most convenient; however it is not really perfect, particularly if
+you want to store VMS files on your Linux machine.
+
+To help this FAL can optionally be told to map various Linux file types to
+VMS file type.
+
+There are three schemes available:
+
+GUESS: (fal -ag) 
+  fal will read the first few bytes of the file. If it finds binary data there
+  it will send the file as 512 byte fixed-length records. 
+  Otherwise STREAMLF will be used.
+
+CHECK: (fal -ae [-f check file])
+  fal will convert files based on the file's extension (actually just the last
+  few characters of the file). fal has a set of defaults built in to it but 
+  you can override those by creating your own file and telling fal where
+  to look for it. For the format of this file (and the default contents) see 
+  the man page for fal(8).
+
+METAFILE: (fal -m)
+  fal maintains a directory (.fal) in each directory containing the file type
+  information for each file. You can combine metafile information with the 
+  other two schemes above; Metafile information takes precedence but if it does
+  not exist then GUESS or CHECK will be used. Failing that, of course, STREAMLF
+  will be used. 
+  Metafiles also keep a list of record lengths when writing variable length 
+  record files so that files such as .OBJ files can be stored on
+  Linux and still be read by VMS as records. These files have LFs written
+  at the end of each record so that you can still read text files under
+  Linux as well as VMS.
+
+It is possible to override GUESS and CHECK on a per-user basis by creating a 
+file in the user's home directory called '.fal_auto'. This file can contain 
+one of the three strings "guess", "ext" or "none" (without the quotes) which 
+indicates the method of type conversion invoked. User overrides are only 
+possible if fal is started with the -u switch.
+
+In addition you can get FAL to read the $ADF$ files generated by the NFS 
+Client in TCP/IP for VMS V5.0+ by starting it with the -t switch. This switch
+can co-exist with the schemes listed above. Where a $ADF$ file does exist it
+takes precedence over FAL metafiles or guessed file types.
+
+I'm sorry this is so complicated but conversion from the very rich VMS file
+system to the extremely primitive Unix file system is a complicated issue.
+If all this choice makes your head spin then just leave things at their
+defaults and don't worry about it.
+
+
+FILENAME CONVERSIONS
+--------------------
+FAL understands both Unix and VMS format filenames. If a request comes in
+with VMS format filenames then the reply will also have VMS format filenames.
+Otherwise the native Unix type filenames will be emitted. The VMS format 
+filename is formed by making a volume name from the top-level directory so that
+/home/christine/myfile.txt would appear to VMS as HOME:[CHRISTINE]MYFILE.TXT;1
+
+All VMS-format filenames are given the version number 1 and are converted to 
+upper case.
+
+Because Linux allows any character in a filename (apart from /) it is quite
+easy to generate a filename that is illegal to VMS. FAL converts dots to 
+hyphens where they appear in the middle of a filename and also converts other 
+illegal characters to hyphens too. It does not check for this when the filename
+are passed back. Because VMS does a directory lookup before accessing files
+(mostly) if you want to access these files you will have to enclose the name in
+quotes on VMS.
+
+In addition to all this FAL converts all incoming filenames (that are in VMS
+format) to lower case. This means you cannot access files that have upper
+case characters in them unless you enclose them in quotes.
+
+If you do a directory of the Linux machine from VMS you will usually get VMS
+format names. If you want to see the real (Unix) names then enclose the remote
+file specification in quotes and use Unix wildcards. eg:
+
+$ DIR LINUX::"/home/christine/*.txt"
+
+FAL understands the VMS * and % wildcards (the % is converted to ?) but it 
+does NOT understand the elipsis [...] wildcard. This is because there is
+no natural Unix equivalent. For those of you that are interested in these 
+things the filenames generated by wildcard requests are produced with the 
+glob(3) library call.
+
+File names are converted at least twice so don't be surprised if the name you
+see in a directory listing or error message doesn't match what you typed. If
+a VMS-style filename is used it is first converted to a local filename (so
+FAL can find the file, resolve wildcards etc) and then it is converted back 
+into a VMS-format filespec as shown above. This is the filename that is
+returned to the client. If the filename has too few slashes to make a filename
+as shown above then a pseudo volume SYSDISK is used to pad it out 
+(eg /bin/ls becomes SYSDISK:[BIN]LS;1) FAL understands these filenames when
+they are passed back to it so don't worry.
+
+If you start FAL with the -r<dir> flag then all filenames will be relative to
+the directory following the flag. This effectively disables users home
+directories so think about this before doing it. so (eg) if FAL is started as
+
+fal -r /vmsroot
+
+and a VMS users tries to access file
+
+LINUX::[MYDIR]file.txt
+
+then Linux will send the file
+
+/vmsroot/mydir/file.txt
+
+With -r any attempt to go up a directory using .. will fail the file access.
+
+
+HOW IT WORKS
+------------
+This is just a brief overview. If you really want to know then look at the
+sources.
+
+All of the DAP protocol messages (and their subtypes) are encapsulated in
+C++ classes (in libdap/protocol.*). When a message arrives a newly
+created object of the correct class is created and returned to the calling
+routine. The classes all have read() and write() methods as well as a
+set of field accessor methods.
+
+FAL sets up a listening socket that listens on the DECnet object 0x11 (FAL).
+When it receives an incoming request it checks the username and password
+(or the proxy database). If access is granted it forks and creates a new 
+'fal_server' object to service the request. This operation now exists in
+the libdnet_daemon library rather than libdap. It also means that fal can
+be run from dnetd. See the file dnetd.README in this directory for more 
+information about this program.
+
+fal_server exchanges CONFIG messages with the client and then waits for
+other messages to arrive. It will save ATTRIB messages until it receives an
+ACCESS message which it then uses to create a fal_directory, fal_open, 
+fal_create, fal_erase or fal_rename object as appropriate. These objects then
+get passed the messages that arrive from the client until they have done their 
+job at which time they return 'false' from the 'process_message()' method and 
+the fal_server waits for another ACCESS message or exits because the remote 
+end has closed the connection.
+
+Most fal_* objects use the glob(3) library call to service wildcards.
+
+FAL does not implement the NETSERVER$TIMEOUT facility used by VMS to allow
+one process to serve many requests because fork() is a far cheaper operation
+on linux that $CREPRC on VMS (one of the very few areas where Unix beats VMS)
+
+When sending files to VMS FAL will use block transfer mode; when receiving
+files, however, record mode is used unless the file is a STREAMLF file because
+Linux cannot understand the internal format of other VMS files. 
+This means that if you send an RMS indexed file to Linux you will get a 
+sequential file with all the records in primary index order. It also means 
+that sending files to VMS will probably be faster than receiving to Linux 
+so bear this in mind if you fancy doing any benchmarks.

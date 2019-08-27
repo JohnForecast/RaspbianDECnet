@@ -1,0 +1,22 @@
+# /etc/decnet.proxy
+#
+# DECnet proxy database.
+# The format of this file is (one entry per line)
+# node::remoteuser localuser
+#
+# Regular expressions are allowed for node and remote user. Remember these are
+# POSIX regular expressions so use .* where you would use just * on VMS.
+# Also it is IMPORTANT that whole names (node and user) are enclosed
+# in anchors as below.
+# The entries are checked in the order they appear in this file.
+# * as a local user will be replaced by the remote username.
+# # is a comment.
+#
+# Here are some examples (commented out of course):
+#
+# ^tramp$::^test$ chrissie # Explicitly convert 'test' on tramp to 'chrissie'
+# ^zaphod$::.*    none     # Disable proxies from zaphod (assuming you don't have
+#                          #   a user called 'none')
+# .*::.* decnet            # Like a default DECnet account
+# .*::.* *                 # Equivalent to VMS *::* * proxy (make this last
+#                          #   if you use it)
