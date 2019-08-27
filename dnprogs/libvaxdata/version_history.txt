@@ -1,0 +1,36 @@
+  Version history for
+
+  Lawrence M. Baker, 2005, revised 2010, libvaxdata: VAX data format 
+       conversion routines:  U.S. Geological Survey Open-File Report
+       2005-1424, v1.2 [available on the World Wide Web at URL
+       http://pubs.usgs.gov/of/2005/1424/].
+
+
+  Version 1.0, January 6, 2006
+  ----------------------------
+
+  Initial release online at
+  http://pubs.usgs.gov/of/2005/1424/
+  Supported platforms and compilers:    Linux:              GNU gcc, Intel icc, Portland Group pgcc    Mac OS 9:           Apple/Motorola MPW MrC, Metrowerks CodeWarrior mwcc    Mac OS X:           GNU gcc, IBM xlc    OpenVMS:            VAX CC, DEC CC    Solaris:            GNU gcc, Sun cc    Tru64 Unix:         HP cc, GNU gcc    Windows:            Microsoft CL, Metrowerks CodeWarrior MWCC
+
+  Version 1.1, February 2, 2010
+  -----------------------------
+
+  Bug fixes:    Corrected output byte ordering for d8/g8/h16 conversions on little endian
+      machines.    Corrected exponent positioning in to_vax_d8().    Corrected typo (VAX_D_EXPONENT_BIAS should be VAX_G_EXPONENT_BIAS) in
+      to_vax_g8().  New features:    Added test program to validate conversions.  Added make files for the following platforms and compilers:    Linux:              PathScale pathcc    Mac OS X:           Intel icc  Removed make files for the following platforms and compilers:    Mac OS 9:           Apple/Motorola MPW MrC, Metrowerks CodeWarrior mwcc
+    Windows:            Metrowerks CodeWarrior MWCC
+
+  Version 1.2, April 15, 2010
+  ---------------------------
+
+  Bug fixes:
+    Corrected f4/g8/h16 conversions to IEEE subnormal form.
+
+  Additional Notes
+  ----------------
+
+  As of the Version 1.1 release, make files for the following platforms and
+  compilers are included in the distribution, but the author no longer has the
+  ability to test them:    Linux:              Intel icc    Solaris:            GNU gcc, Sun cc    Tru64 Unix:         GNU gcc  Contact the author for assistance to use the library on these or other
+  platforms and compilers.
