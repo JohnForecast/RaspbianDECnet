@@ -127,9 +127,12 @@ Changes from previous DECnet for Linux releases:
 
    3. Automatically determine whether to use DECnet-VMS syntax for specifying
       access control information (node"username password account"::filespec)
-      or DECnet-Ultrix and DECnet-RSX syntax (node/username/password/account::filespec)
-      based of the first character following the nodename. (currently this is only
-      available for the file access utilities; dndir, dntype, dncopy etc).
+      or DECnet-Ultrix and DECnet-RSX syntax
+      (node/username/password/account::filespec) based of the first character
+      following the nodename.
+
+      This support is available in the file access utilities (dndir, dntype,
+      etc) and dntask.
 
 Systems Tested (all running the 2019-7-10 version of Raspbian Buster):
 
