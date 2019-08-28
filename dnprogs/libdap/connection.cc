@@ -786,7 +786,7 @@ int dap_connection::set_blocked(bool onoff)
 //      node/username/password/account::filespec
 //
 // based on the first character following the node name.
- dap_connection::parse(const char *fname,
+bool dap_connection::parse(const char *fname,
                            struct accessdata_dn &accessdata,
                            char *node, char *filespec)
 {
