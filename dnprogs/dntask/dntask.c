@@ -307,6 +307,7 @@ static int parse(char *fname)
     enum  {NODE, USER, PASSWORD, ACCOUNT, NAME, FINISHED} state;
     int   n0=0;
     int   n1=0;
+    char  sep, term;
     char *local_user;
 
     state = NODE; /* Node is mandatory */
@@ -316,108 +317,117 @@ static int parse(char *fname)
 	switch (state)
 	{
 	case NODE:
-	    if (fname[n0] != ':' && fname[n0] != '\"' && fname[n0] != '\'')
-	    {
-		if (n1 >= MAX_NODE ||
-		    fname[n0] == ' ' || fname[n0] == '\n')
-		{
-		    lasterror = "File name parse error";
-		    return FALSE;
-		}
-		node[n1++] = fname[n0++];
-	    }
-	    else
-	    {
-		node[n1] = '\0';
-		n1 = 0;
-		if (fname[n0] == '\"')
-		{
-		    n0++;
-		    state = USER;
-		}
-		else
-		{
-		    n0 += 2;
-		    state = NAME;
-		}
-	    }
-	    break;
+            if (fname[n0] != ':' && fname[n0] != '\"' &&
+                fname[n0] != '\'' && fname[n0] != '/')
+            {
+                if (n1 >= MAX_NODE ||
+                    fname[n0] == ' ' || fname[n0] == '\n')
+                {
+                    lasterror = (char *)"File name parse error";
+                    return FALSE;
+                }
+                node[n1++] = fname[n0++];
+            }
+            else
+            {
+                node[n1] = '\0';
+                n1 = 0;
+                switch (fname[n0])
+                {
+                case '\"':
+                case '\'':
+                    sep = ' ';
+                    term = fname[n0++];
+                    state = USER;
+                    break;
+
+                case '/':
+                    sep = '/';
+                    term = 0;
+                    n0++;
+                    state = USER;
+                    break;
+
+                default:
+                    n0 += 2;
+                    state = NAME;
+                    break;
+                }
+            }
+            break;
 
 	case USER:
-	    if (fname[n0] != ' ' && fname[n0] != '\"' && fname[n0] != '\'')
-	    {
-		if (n1 >= MAX_USER)
-		{
-		    lasterror = "File name parse error";
-		    return FALSE;
-		}
-		accessdata.acc_user[n1++] = fname[n0++];
-	    }
-	    else
-	    {
-		accessdata.acc_user[n1] = '\0';
-		n1 = 0;
-		if (fname[n0] == ' ')
-		{
-		    state = PASSWORD;
-		    n0++;
-		}
-		else /* Must be a quote */
-		{
-		    state = NAME;
-		    /* Check for :: */
-		    n0 += 3;
-		}
-	    }
-	    break;
+            if (fname[n0] != sep && fname[n0] != (term ? term : ':'))
+            {
+                if (n1 >= MAX_USER)
+                {
+                    lasterror = (char *)"File name parse error";
+                    return FALSE;
+                }
+                accessdata.acc_user[n1++] = fname[n0++];
+            }
+            else
+            {
+                accessdata.acc_user[n1] = '\0';
+                n1 = 0;
+                if (fname[n0] == sep)
+                {
+                    state = PASSWORD;
+                    n0++;
+                }
+                else
+                {
+                    state = NAME;
+                    n0 += term ? 3 : 2;
+                }
+            }
+            break;
 
 	case PASSWORD:
-	    if (fname[n0] != ' ' && fname[n0] != '\"' && fname[n0] != '\'')
-	    {
-		if (n1 >= MAX_PASSWORD)
-		{
-		    lasterror = "File name parse error";
-		    return FALSE;
-		}
-		accessdata.acc_pass[n1++] = fname[n0++];
-	    }
-	    else
-	    {
-		accessdata.acc_pass[n1] = '\0';
-		n1 = 0;
-		if (fname[n0] == ' ')
-		{
-		    n0++;
-		    state = ACCOUNT;
-		}
-		else /* Must be a quote */
-		{
-		    state = NAME;
-		    /* Check for :: */
-		    n0 += 3;
-		}
-	    }
-	    break;
+            if (fname[n0] != sep && fname[n0] != (term ? term : ':'))
+            {
+                if (n1 >= MAX_PASSWORD)
+                {
+                    lasterror = (char *)"File name parse error";
+                    return FALSE;
+                }
+                accessdata.acc_pass[n1++] = fname[n0++];
+            }
+            else
+            {
+                accessdata.acc_pass[n1] = '\0';
+                n1 = 0;
+                if (fname[n0] == sep)
+                {
+                    state = ACCOUNT;
+                    n0++;
+                }
+                else
+                {
+                    state = NAME;
+                    n0 += term ? 3 : 2;
+                }
+            }
+            break;
 
 	case ACCOUNT:
-	    if (fname[n0] != '\'' && fname[n0] != '\"')
-	    {
-		if (n1 >= MAX_ACCOUNT)
-		{
-		    lasterror = "File name parse error";
-		    return FALSE;
-		}
-		accessdata.acc_acc[n1++] = fname[n0++];
-	    }
-	    else
-	    {
-		accessdata.acc_acc[n1] = '\0';;
-		state = NAME;
-		n1 = 0;
-		/* Check for :: */
-		n0 += 3;
-	    }
-	    break;
+            if (fname[n0] != sep && fname[n0] != (term ? term : ':'))
+            {
+                if (n1 >= MAX_ACCOUNT)
+                {
+                    lasterror = (char *)"File name parse error";
+                    return FALSE;
+                }
+                accessdata.acc_acc[n1++] = fname[n0++];
+            }
+            else
+            {
+                accessdata.acc_acc[n1] = '\0';
+                n1 = 0;
+                state = NAME;
+                n0 += term ? 3 : 2;
+            }
+            break;
 
 	case NAME:
 	    strcpy(filename, fname+n0);
