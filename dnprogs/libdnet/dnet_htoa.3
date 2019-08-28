@@ -1,0 +1,55 @@
+.TH DNET_HTOA 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+dnet_htoa \- DECnet address to host name translation
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B char *dnet_htoa (struct dn_naddr *addr)
+.sp
+.SH DESCRIPTION
+
+.B dnet_htoa
+searches the decnet hosts file for 
+.B addr 
+and returns the DECnet node name.
+.br
+If no entry is found, returns the ascii DECnet address in the format
+.B area.node 
+(1.1, 1.2, etc)
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct dn_naddr		binaddr;
+
+    binaddr.a_len 	= 2;
+    binaddr.a_addr[0] 	= 0x02;			
+    binaddr.a_addr[1] 	= 0x04;
+
+    printf ("DECnet node name is %s",dnet_htoa(binaddr));
+    
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

@@ -1,0 +1,64 @@
+.TH GETNODEBYADDR 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+getnodebyaddr \- DECnet node entry retrieval by address
+
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B struct nodeent *getnodebyaddr (char *addr, short len, const int family)
+.sp
+.SH DESCRIPTION
+
+.B getnodebyaddr
+searches the decnet hosts file for the DECnet node with address equal to
+.B addr 
+of
+.B len
+bytes, belonging to protocol family
+.B family
+(PF_DECnet) and returns node information into the
+.B nodeent
+structure.
+.br
+If no entry is found, returns 
+.B NULL
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct dn_naddr		binaddr;
+    struct nodeent		*dp;
+
+    binaddr->a_len = 2;
+    binaddr->a_addr[0] = 0x02;
+    binaddr->a_addr[1] = 0x04;
+
+    if ( (dp=getnodebyaddr(binaddr->a_addr,binaddr->len, PF_DECnet)) == NULL)
+	   printf("Error, cannot find node entry");
+    else
+	   printf("Node name is %s",dp->n_name);
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR dnet_addr (3),
+.BR getnodebyname (3),
+.BR getnodeadd (3),
+.BR setnodeent (3)

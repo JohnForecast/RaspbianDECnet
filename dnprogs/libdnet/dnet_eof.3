@@ -1,0 +1,62 @@
+.TH DNET_EOF 3 "July 28, 1998" "DECnet functions"
+.SH NAME
+dnet_eof \- Is DECnet socket at End of File ?
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B int dnet_eof (int fd)
+.sp
+.SH DESCRIPTION
+
+.B dnet_eof
+returns 0 if the socket is not at end-of-file.
+It will return \-1 otherwise, errno will be set accordingly. errno will be
+set to ENOTCONN if the socket is at EOF.
+.br
+.B dnet_eof
+is only supported on Linux 2.4.0 or later. On earlier kernels it will
+always return \-1 and errno will be set to EINVAL.
+
+.SH EXAMPLE
+Here is a primitive server example that just prints out anything sent to it
+from the remote side:
+.nf
+#include <sys/types.h>
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <stdio.h>
+
+int main(int argc, char **argv)
+{
+   int insock, readnum;
+   char ibuf[1024];
+
+   // Wait for something to happen (or check to see if it already has)
+    insock = dnet_daemon(0, "GROT", 0, 0);
+ 
+    if (insock > \-1)
+    {
+        dnet_accept(insock, 0, 0, NULL);
+        while (!dnet_eof(insock)) 
+        { 
+            readnum=read(insock,ibuf,sizeof(ibuf));
+            fprintf(stderr, "%-*s\\n", readnum, ibuf);
+        }
+        close(insock);
+    }
+
+
+}
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

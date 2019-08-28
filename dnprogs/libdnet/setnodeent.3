@@ -1,0 +1,43 @@
+.TH SETNODEENT 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+setnodeent \- DECnet database seek function
+
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B void setnodeent(int ent)
+.sp
+.SH DESCRIPTION
+
+.B setnodeent
+seeks the next record to be retrieved by getnodeent. Actually this function
+is present only for compatibility with X11R6.
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+	setnodeent(1);	/* points to the first entry in decnet.conf */
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR dnet_addr (3),
+.BR getnodebyaddr (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3)

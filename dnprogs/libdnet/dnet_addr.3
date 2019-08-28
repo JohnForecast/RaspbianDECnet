@@ -1,0 +1,76 @@
+.TH DNET_ADDR 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+dnet_addr \- DECnet nodename to address translation
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B struct dn_naddr *dnet_addr (char *nodename)
+.sp
+.SH DESCRIPTION
+
+.B dnet_addr
+search the decnet hosts file for 
+.B nodename 
+and returns the DECnet address in the 
+.B dn_naddr
+structure
+.br
+If no entry is found, returns 
+.B NULL
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct dn_naddr		*binaddr;
+    struct sockaddr_dn		sockaddr;
+    int				sockfd;
+
+    if ( (binaddr=dnet_addr("mv3100")) == NULL)
+    {
+	   printf("No entry in /etc/decnet.conf for mv3100\\n");
+	   exit(0);
+     }
+     if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == \-1) 
+     {
+    		perror("socket");
+    		exit(\-1);
+     }
+
+     sockaddr.sdn_family 	= AF_DECnet;
+     sockaddr.sdn_flags		= 0x00;
+     sockaddr.sdn_objnum	= 0x19;			/* MIRROR */
+     sockaddr.sdn_objnamel	= 0x00;
+     memcpy(sockaddr.sdn_add.a_addr, binaddr->a_addr,binaddr->a_len);
+
+     if (connect(sockfd, (struct sockaddr *)&sockaddr, 
+		sizeof(sockaddr)) < 0) 
+     {
+		perror("connect");
+		exit(\-1);
+     }
+     close(sockfd);
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

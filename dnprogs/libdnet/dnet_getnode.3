@@ -1,0 +1,65 @@
+.TH DNET_GETNODE 3 "April 3, 1999" "DECnet database functions"
+.SH NAME
+dnet_getnode, dnet_nextnode, dnet_endnode \- Get nodes from DECnet database
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B void *dnet_getnode (void)
+.br
+.B char *dnet_nextnode (void *)
+.br
+.B  void dnet_endnode (void *)
+.sp
+.SH DESCRIPTION
+
+.B dnet_getnode()
+Starts the search of the DECnet nodes database (/etc/decnet.conf). It returns
+an opaque pointer which is passed to the other two functions.
+.br
+.B dnet_nextnode()
+returns the next node name in the list. The pointer is
+private to the library and will be overwritten at the next dnet_nextnode call.
+.B dnet_endnode()
+ends the search. It must be called when you have finished 
+with this group of functions or a memory leak will result.
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+  void *nodelist;
+  char *nodename;
+
+  nodelist = dnet_getnode();
+  nodename = dnet_nextnode(nodelist);
+  while(nodename)
+  {
+      printf("Found node %s\\n", nodename);
+      nodename = dnet_nextnode(nodelist);
+  }
+  dnet_endnode(nodelist);
+
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

@@ -1,0 +1,53 @@
+.TH DNET_NTOA 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+dnet_ntoa \- DECnet address to ascii translation
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B char *dnet_ntoa (struct dn_naddr *addr)
+.sp
+.SH DESCRIPTION
+
+.B dnet_ntoa
+Converts the binary DECnet address 
+.B addr 
+into 
+.B area.node 
+ascii notation (1.1, 63.4, etc).
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct dn_naddr		binaddr;
+
+    binaddr.a_len 	= 2;
+    binaddr.a_addr[0] 	= 0x02;			
+    binaddr.a_addr[1] 	= 0x04;
+
+    printf ("DECnet area.node is %s",dnet_ntoa(binaddr));
+    
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_htoa (3),
+.BR dnet_conn (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

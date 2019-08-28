@@ -1,0 +1,55 @@
+.TH GETNODEADD 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+getnodeadd \- DECnet address of executor node
+
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B struct dn_naddr *getnodeadd (void)
+.sp
+.SH DESCRIPTION
+
+.B getnodeadd
+searches the decnet hosts file for the 
+.B executor 
+node and returns the DECnet address in the 
+.B dn_naddr
+structure
+.br
+If no entry is found, returns 
+.B NULL
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct dn_naddr		*binaddr;
+
+    if ( (binaddr=getnodeadd()) == NULL)
+	   printf("Error, cannot find executor node address");
+    else
+	   printf("getnodeadd successfully got executor node address");
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR dnet_addr (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

@@ -1,0 +1,59 @@
+.TH DNET_CONN 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+dnet_conn \- Connect to remote DECnet object by name.
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B int dnet_conn (char *hostname, char *objname, int type, int,int,int,int)
+.sp
+.SH DESCRIPTION
+
+.B dnet_conn
+connects to the remote object 
+.B objname
+in host
+.B hostname 
+using the protocol denoted by
+.B type
+usually DNPROTO_NSP.
+If successful, returns an integer file descriptor, else return errno.
+
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    int sockfd;
+
+    sockfd=dnet_conn("mv3100","X$X0",DNPROTO_NSP,0,0,0,0);
+    if (sockfd < 0) 
+    	printf ("Error connecting to remote object X$X0 on node mv3100");
+    else
+    {
+    	printf ("Succesfully connected to remote object X$X0 on node mv3100");
+    	close (sockfd);
+     }
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

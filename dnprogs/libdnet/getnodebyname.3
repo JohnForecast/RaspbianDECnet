@@ -1,0 +1,56 @@
+.TH GETNODEBYNAME 3 "July 28, 1998" "DECnet database functions"
+.SH NAME
+getnodebyname \- DECnet node entry retrieval by address
+
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B struct nodeent *getnodebyname (char *name)
+.sp
+.SH DESCRIPTION
+
+.B getnodebyname
+searches the decnet hosts file for the DECnet node with name equal to
+.B name 
+and returns node information into the
+.B nodeent
+structure.
+.br
+If no entry is found, returns 
+.B NULL
+
+
+.SH EXAMPLE
+.nf
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include <sys/socket.h>
+
+main(void)
+{
+    struct nodeent		*dp;
+
+
+    if ( (dp=getnodebyname("mv3100")) == NULL)
+	   printf("Error, cannot find node entry");
+    else
+	   printf("Node name is %s",dp->n_name);
+}
+.fi
+
+
+
+
+.SH SEE ALSO
+
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR dnet_conn (3),
+.BR dnet_addr (3),
+.BR getnodebyaddr (3),
+.BR getnodeadd (3),
+.BR setnodeent (3)
