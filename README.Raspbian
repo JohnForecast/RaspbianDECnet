@@ -125,20 +125,11 @@ Changes from previous DECnet for Linux releases:
               0.0      - Means connect to the local node
               0.n      - Means connect to node n in the local node's area
 
-   3. By default, DECnet-Linux uses the VMS syntax for specifying access
-      control information for the file access utilties (dndir, dntype, dncopy
-      etc):
-
-              node"username password account"::filespec
-
-      which needs to be quoted so that it is not interpreted by the shell:
-
-              'node"username password account"::filespec'
-
-      If the environment variable USE_ULTRIX_SYNTAX is defined, DECnet-Utltrix
-      syntax is used:
-
-              node/username/password/account::filespec
+   3. Automatically determine whether to use DECnet-VMS syntax for specifying
+      access control information (node"username password account"::filespec)
+      or DECnet-Ultrix and DECnet-RSX syntax (node/username/password/account::filespec)
+      based of the first character following the nodename. (currently this is only
+      available for the file access utilities; dndir, dntype, dncopy etc).
 
 Systems Tested (all running the 2019-7-10 version of Raspbian Buster):
 
