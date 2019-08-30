@@ -76,7 +76,8 @@ a new kernel along with its associated modules and dtb files.
          sudo make install
 
    This will result in user applications and manpages being installed in the
-   /usr/local tree.
+   /usr/local tree, libraries in /usr/lib and C header files in
+   /usr/include/netdnet.
 
 5. Build the DECnet configuration database (/etc/decnet.conf)
 
