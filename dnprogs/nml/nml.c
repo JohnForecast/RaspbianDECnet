@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <syslog.h>
 #include <string.h>
 #include <unistd.h>
@@ -325,7 +326,7 @@ static int save_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
         struct ndmsg *r = NLMSG_DATA(n);
         struct rtattr * tb[NDA_MAX+1];
-        int sock = (int)arg;
+        int sock = (intptr_t)arg;
 
         memset(tb, 0, sizeof(tb));
         parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof(*r)));
@@ -344,7 +345,7 @@ static int send_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
 	struct ndmsg *r = NLMSG_DATA(n);
 	struct rtattr * tb[NDA_MAX+1];
-	int sock = (int)arg;
+	int sock = (intptr_t)arg;
 
 	memset(tb, 0, sizeof(tb));
 	parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof(*r)));
@@ -397,7 +398,7 @@ static int get_neighbour_nodes(int sock, neigh_fn_t neigh_fn)
 	}
 
 	/* Calls got_neigh() for each adjacent node */
-	if (rtnl_dump_filter(&listen_rth, neigh_fn, (void *)sock, NULL, NULL) < 0) {
+	if (rtnl_dump_filter(&listen_rth, neigh_fn, (void *)(intptr_t)sock, NULL, NULL) < 0) {
 		syslog(LOG_ERR, "Dump terminated: %m\n");
 		return -1;
 	}
