@@ -142,3 +142,6 @@ Raspberry Pi Zero W
 Raspberry Pi 2B V1.1
 
 Raspberry Pi 4B (2 GB)
+
+In addition, this code has been successfully run on the Raspberry Pi 4B running the "testing" 64-bit Raspbian kernel (still
+uses 32-bit userland).
