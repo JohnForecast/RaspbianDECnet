@@ -135,13 +135,13 @@ Changes from previous DECnet for Linux releases:
       This support is available in the file access utilities (dndir, dntype,
       etc) and dntask.
 
-Systems Tested (all running the 2019-7-10 version of Raspbian Buster):
+Systems Tested:
 
-Raspberry Pi Zero W
+Raspberry Pi Zero W (2019-7-10 version of Raspbian Buster)
 
-Raspberry Pi 2B V1.1
+Raspberry Pi 2B V1.1 (2019-7-10 version of Raspbian Buster)
 
-Raspberry Pi 4B (2 GB)
+Raspberry Pi 4B (2 GB)(2019-7-10 and 2019-9-26 versions of Raspbian Buster)
 
 In addition, this code has been successfully run on the Raspberry Pi 4B running the "testing" 64-bit Raspbian kernel (still
 uses 32-bit userland).
