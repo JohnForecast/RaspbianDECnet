@@ -301,8 +301,8 @@ static inline __le16 *dn_mk_common_header(struct dn_scp *scp, struct sk_buff *sk
 static __le16 *dn_mk_ack_header(struct sock *sk, struct sk_buff *skb, unsigned char msgflag, int hlen, int other)
 {
 	struct dn_scp *scp = DN_SK(sk);
-	unsigned short acknum = scp->numdat_rcv & 0x0FFF;
-	unsigned short ackcrs = scp->numoth_rcv & 0x0FFF;
+	unsigned short acknum = scp->numdat_rcv & NSP_SG_MASK;
+	unsigned short ackcrs = scp->numoth_rcv & NSP_SG_MASK;
 	__le16 *ptr;
 
 	BUG_ON(hlen < 9);
@@ -323,6 +323,12 @@ static __le16 *dn_mk_ack_header(struct sock *sk, struct sk_buff *skb, unsigned c
 
 	*ptr++ = cpu_to_le16(acknum);
 	*ptr++ = cpu_to_le16(ackcrs);
+
+	/*
+	 * Cancel any ack delay timer since we are about to send an
+	 * explicit ack.
+	 */
+	scp->ackdelay = 0;
 
 	return ptr;
 }

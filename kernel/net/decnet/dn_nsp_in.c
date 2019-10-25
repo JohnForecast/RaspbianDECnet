@@ -76,6 +76,8 @@
 #include <net/dn_dev.h>
 #include <net/dn_route.h>
 
+#define ACKDELAY	(3 * HZ)
+
 extern int decnet_log_martians;
 
 static void dn_log_martian(struct sk_buff *skb, const char *msg)
@@ -106,7 +108,7 @@ static void dn_ack(struct sock *sk, struct sk_buff *skb, unsigned short ack)
 	switch (type) {
 	case 0: /* ACK - Data */
 		if (dn_after(ack, scp->ackrcv_dat)) {
-			scp->ackrcv_dat = ack & 0x0fff;
+			scp->ackrcv_dat = ack & NSP_SG_MASK;
 			wakeup |= dn_nsp_check_xmit_queue(sk, skb,
 							  &scp->data_xmit_queue,
 							  ack);
@@ -116,7 +118,7 @@ static void dn_ack(struct sock *sk, struct sk_buff *skb, unsigned short ack)
 		break;
 	case 2: /* ACK - OtherData */
 		if (dn_after(ack, scp->ackrcv_oth)) {
-			scp->ackrcv_oth = ack & 0x0fff;
+			scp->ackrcv_oth = ack & NSP_SG_MASK;
 			wakeup |= dn_nsp_check_xmit_queue(sk, skb,
 							  &scp->other_xmit_queue,
 							  ack);
@@ -662,7 +664,12 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
 		}
 	}
 
-	dn_nsp_send_data_ack(sk);
+	if (queued && !sendack(segnum)) {
+		if (scp->ackdelay != 0) {
+			scp->ackdelay = ACKDELAY;
+		}
+	} else
+		dn_nsp_send_data_ack(sk);
 out:
 	if (!queued)
 		kfree_skb(skb);

@@ -122,7 +122,7 @@ struct dn_scp                                   /* Session Control Port */
 	int (*persist_fxn)(struct sock *sk);
 	unsigned long keepalive;
 	void (*keepalive_fxn)(struct sock *sk);
-
+	unsigned long ackdelay;
 };
 
 static inline struct dn_scp *DN_SK(struct sock *sk)

@@ -28,6 +28,8 @@
 #include <net/flow.h>
 #include <net/dn.h>
 
+extern void dn_nsp_send_data_ack(struct sock *);
+
 /*
  * Slow timer is for everything else (n * 500mS)
  */
@@ -95,6 +97,21 @@ static void dn_slow_timer(struct timer_list *t)
 	if (scp->keepalive && scp->keepalive_fxn && (scp->state == DN_RUN)) {
 		if (time_after_eq(jiffies, scp->stamp + scp->keepalive))
 			scp->keepalive_fxn(sk);
+	}
+
+	/*
+	 * Check for delayed ack. Check this after the other 2 cases since
+	 * they may cause a retransmit and we will not have to send an
+	 * explicit ack.
+	 */
+	if (scp->ackdelay && (scp->state == DN_RUN)) {
+		if (scp->ackdelay <= SLOW_INTERVAL) {
+			scp->ackdelay = 0;
+
+			dn_nsp_send_data_ack(sk);
+		} else {
+			scp->ackdelay -= SLOW_INTERVAL;
+		}
 	}
 
 	sk_reset_timer(sk, &sk->sk_timer, jiffies + SLOW_INTERVAL);

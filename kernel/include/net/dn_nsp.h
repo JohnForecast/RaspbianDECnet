@@ -158,10 +158,10 @@ static __inline__ int dn_before(__u16 seq1, __u16 seq2)
 
 static __inline__ int dn_after(__u16 seq1, __u16 seq2)
 {
-        seq1 &= 0x0fff;
-        seq2 &= 0x0fff;
+        seq1 &= NSP_SG_MASK;
+        seq2 &= NSP_SG_MASK;
 
-        return (int)((seq2 - seq1) & 0x0fff) > 2048;
+        return (int)((seq2 - seq1) & NSP_SG_MASK) > 2048;
 }
 
 static __inline__ int dn_equal(__u16 seq1, __u16 seq2)

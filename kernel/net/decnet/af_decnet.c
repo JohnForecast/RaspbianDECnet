@@ -532,6 +532,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
 	scp->persist_fxn = NULL;
 	scp->keepalive = 10 * HZ;
 	scp->keepalive_fxn = dn_keepalive;
+	scp->ackdelay = 0;
 
 	dn_start_slow_timer(sk);
 out:
