@@ -134,7 +134,23 @@ Changes from previous DECnet for Linux releases:
 
       This support is available in the file access utilities (dndir, dntype,
       etc) and dntask.
+      
+   4. This version now handles inbound delayed ack requests from remote systems which helps reduce network traffic.
 
+
+Notes:
+
+   1. If a remote system does not use message or segment flow control (VMS does not) the congestion window size will be
+      clamped to 1 which means that data will be transmitted synchronously to the remote system one packet at a time;
+      send packet, wait for ack, send packet ... You can change this behaviour through the following sysctl after the modprobe
+      described above (don't forget the "sudo" for the on request case):
+      
+            sysctl -w net.decnet.no_fc_max_cwnd=n
+            
+      where n is the maximum size of the congestion window (# of packets which can be in flight at a time). Note that
+      delayed acks are not currently implemented for outbound traffic.
+      
+      
 Systems Tested:
 
 Raspberry Pi Zero W (2019-7-10 version of Raspbian Buster)
