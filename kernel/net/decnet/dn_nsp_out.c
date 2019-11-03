@@ -219,6 +219,7 @@ static inline unsigned int dn_nsp_clone_and_send(struct sk_buff *skb,
 		ret = cb->xmit_count;
 		cb->xmit_count++;
 		cb->stamp = jiffies;
+		cb->ack_delay = 0;
 		skb2->sk = skb->sk;
 		dn_nsp_send(skb2);
 	}
@@ -346,7 +347,11 @@ static __le16 *dn_nsp_mk_data_header(struct sock *sk, struct sk_buff *skb, int o
 		cb->segnum = scp->numdat;
 		seq_add(&scp->numdat, 1);
 	}
-	*(ptr++) = cpu_to_le16(cb->segnum);
+	if (unlikely(oth) || (cb->ack_delay == 0)) {
+		*(ptr++) = cpu_to_le16(cb->segnum);
+	} else {
+		*(ptr++) = cpu_to_le16(cb->segnum | NSP_ACK_DLY);
+	}
 
 	return ptr;
 }

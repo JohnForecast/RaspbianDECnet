@@ -103,6 +103,11 @@ struct dn_scp                                   /* Session Control Port */
 	unsigned long nsp_rxtshift;
 
 	/*
+	 * Count of consecutive delayed acks
+	 */
+	int delayedacks;
+
+	/*
 	 * Output queues, one for data, one for otherdata/linkservice
 	 */
 	struct sk_buff_head data_xmit_queue;
@@ -159,6 +164,7 @@ struct dn_skb_cb {
 	__u8 info;
 	__u8 rt_flags;
 	__u8 nsp_flags;
+	__u8 ack_delay;
 	__u16 segsize;
 	__u16 segnum;
 	__u16 xmit_count;
@@ -223,6 +229,7 @@ extern int decnet_dn_count;
 extern int decnet_di_count;
 extern int decnet_dr_count;
 extern int decnet_no_fc_max_cwnd;
+extern int decnet_dlyack_seq;
 
 extern long sysctl_decnet_mem[3];
 extern int sysctl_decnet_wmem[3];

@@ -140,6 +140,8 @@ Version 0.0.6    2.1.110   07-aug-98   Eduardo Marcelo Serrat
 #include <net/dn_fib.h>
 #include <net/dn_neigh.h>
 
+#define MIN(a, b)	((a) < (b) ? (a) : (b))
+
 struct dn_sock {
 	struct sock sk;
 	struct dn_scp scp;
@@ -523,6 +525,8 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
 	scp->nsp_srtt     = NSP_INITIAL_SRTT;
 	scp->nsp_rttvar   = NSP_INITIAL_RTTVAR;
 	scp->nsp_rxtshift = 0;
+
+	scp->delayedacks = 0;
 
 	skb_queue_head_init(&scp->data_xmit_queue);
 	skb_queue_head_init(&scp->other_xmit_queue);
@@ -2081,6 +2085,22 @@ static int dn_sendmsg(struct socket *sock, struct msghdr *msg, size_t size)
 		}
 
 		sent += len;
+
+		/*
+		 * Decide if we should allow the ack for this seqment to
+		 * be delayed.
+		 */
+		if ((flags & MSG_OOB) == 0) {
+			int acksallowed = MIN(decnet_dlyack_seq, scp->snd_window);
+
+			if ((++scp->delayedacks < acksallowed) &&
+			    (sent != size)) {
+				cb->ack_delay = 1;
+			} else {
+				scp->delayedacks = 0;
+			}
+		}
+
 		dn_nsp_queue_xmit(sk, skb, sk->sk_allocation, flags & MSG_OOB);
 		skb = NULL;
 

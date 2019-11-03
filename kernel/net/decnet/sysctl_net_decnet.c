@@ -37,6 +37,7 @@ int decnet_di_count = 3;
 int decnet_dr_count = 3;
 int decnet_log_martians = 1;
 int decnet_no_fc_max_cwnd = NSP_MIN_WINDOW;
+int decnet_dlyack_seq = 3;
 
 /* Reasonable defaults, I hope, based on tcp's defaults */
 long sysctl_decnet_mem[3] = { 768 << 3, 1024 << 3, 1536 << 3 };
@@ -53,6 +54,8 @@ static int min_decnet_dst_gc_interval[] = { 1 };
 static int max_decnet_dst_gc_interval[] = { 60 };
 static int min_decnet_no_fc_max_cwnd[] = { NSP_MIN_WINDOW };
 static int max_decnet_no_fc_max_cwnd[] = { NSP_MAX_WINDOW };
+static int min_decnet_dlyack_seq[] = { NSP_MIN_WINDOW };
+static int max_decnet_dlyack_seq[] = { NSP_MAX_WINDOW };
 static char node_name[7] = "???";
 
 static struct ctl_table_header *dn_table_header = NULL;
@@ -321,7 +324,16 @@ static struct ctl_table dn_table[] = {
 		.extra1 = &min_decnet_no_fc_max_cwnd,
 		.extra2 = &max_decnet_no_fc_max_cwnd
 	},
-       {
+	{
+		.procname = "dlyack_seq",
+		.data = &decnet_dlyack_seq,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = &min_decnet_dlyack_seq,
+		.extra2 = &max_decnet_dlyack_seq
+	},
+	{
 		.procname = "decnet_mem",
 		.data = &sysctl_decnet_mem,
 		.maxlen = sizeof(sysctl_decnet_mem),
