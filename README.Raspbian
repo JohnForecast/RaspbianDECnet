@@ -183,3 +183,8 @@ Raspberry Pi 4B (2 GB) "testing" 64-bit Raspbian kernel (still uses 32-bit userl
 
 In addition this code has been tested on Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
 
+Due to kernel changes, the above no longer work.
+
+Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
+
+
