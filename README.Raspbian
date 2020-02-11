@@ -6,6 +6,8 @@ The kit may be obtained by:
 
     git clone https://github.com/JohnForecast/RaspbianDECnet
 
+Minimum kernel supported:   4.19.93
+Minimum Raspbian release:   2020-02-05
 
 In order to bring up DECnet on Raspbian you will need to compile and install
 a new kernel along with its associated modules and dtb files.
