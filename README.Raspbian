@@ -101,13 +101,12 @@ a new kernel along with its associated modules and dtb files.
         If you wish to start DECnet every time the system boots, add the following
         to /etc/rc.local before the "exit 0" line:
 
-            modprobe decnet
+            modprobe decnet addr=area,node
             #sysctl -w net.decnet.no_fc_max_cwnd=n
-            echo area.node >/proc/sys/net/decnet/node_address
             dnetd
 
-        Where area.node is your node address and will have been used above to
-        set the MAC address of the ethernet adapter.
+        Where area,node is your node address (note the comma separator) and will have been
+        used above to set the MAC address of the ethernet adapter.
 
     6B. Startup DECnet on request
 
@@ -115,13 +114,12 @@ a new kernel along with its associated modules and dtb files.
 
             #!/bin/bash
 
-            sudo modprobe decnet
+            sudo modprobe decnet addr=area,node
             #sudo sysctl -w net.decnet.no_fc_max_cwnd=n
-            sudo bash -c 'echo area.node >/proc/sys/net/decnet/node_address'
             sudo dnetd
 
-        Where area.node is your node address and will have been used above to set
-        the MAC address of the ethernet adapter.
+        Where area,node is your node address (note the comma separator) and will have been
+        used above to set the MAC address of the ethernet adapter.
 
 
 Changes from previous DECnet for Linux releases:
@@ -170,6 +168,8 @@ Notes:
       system supports "no flow control", "net.decnet.no_fc_max_cwnd" should be increased and, ideally, should be at least
       2 * net.decnet.dlyack_seq.
       
+   3. As of 5/5/2020 I changed the startup sequence as described in section 6 above. The old version failed to create
+      /proc/net/decnet_dev which describes the devices being used.
       
 Systems Tested:
 
