@@ -6,6 +6,8 @@ The kit may be obtained by:
 
     git clone https://github.com/JohnForecast/RaspbianDECnet
 
+Minimum kernel supported:   4.19.93
+Minimum Raspbian release:   2020-02-05
 
 In order to bring up DECnet on Raspbian you will need to compile and install
 a new kernel along with its associated modules and dtb files.
@@ -90,29 +92,34 @@ a new kernel along with its associated modules and dtb files.
 
          sudo chmod 644 /etc/decnet.conf
 
-6. Startup DECnet at system boot time
+6. Startup DECnet
 
-   If you wish to start DECnet every time the system boots, add the following
-   to /etc/rc.local before the "exit 0" line:
+   See the notes section below to decide if you need to change the sysctl parameters.
+   
+    6A. Startup DECnet at system boot time
 
-       modprobe decnet
-       echo area.node >/proc/sys/net/decnet/node_address
-       dnetd
+        If you wish to start DECnet every time the system boots, add the following
+        to /etc/rc.local before the "exit 0" line:
 
-   Where area.node is your node address and will have been used above to          set the MAC address of the ethernet adapter.
+            modprobe decnet addr=area,node
+            #sysctl -w net.decnet.no_fc_max_cwnd=n
+            dnetd
 
-7. Startup DECnet on request
+        Where area,node is your node address (note the comma separator) and will have been
+        used above to set the MAC address of the ethernet adapter.
 
-   Create a shell script with the following:
+    6B. Startup DECnet on request
 
-       #!/bin/bash
+        Create a shell script with the following:
 
-       sudo modprobe decnet
-       sudo bash -c 'echo area.node >/proc/sys/net/decnet/node_address'
-       sudo dnetd
+            #!/bin/bash
 
-   Where area.node is your node address and will have been used above to set
-   the MAC address of the ethernet adapter.
+            sudo modprobe decnet addr=area,node
+            #sudo sysctl -w net.decnet.no_fc_max_cwnd=n
+            sudo dnetd
+
+        Where area,node is your node address (note the comma separator) and will have been
+        used above to set the MAC address of the ethernet adapter.
 
 
 Changes from previous DECnet for Linux releases:
@@ -135,21 +142,34 @@ Changes from previous DECnet for Linux releases:
       This support is available in the file access utilities (dndir, dntype,
       etc) and dntask.
       
-   4. This version now handles inbound delayed ack requests from remote systems which helps reduce network traffic.
+   4. This version now handles delayed ack requests for both inbound and outbound
+      data messages.
 
 
 Notes:
 
-   1. If a remote system does not use message or segment flow control (VMS does not) the congestion window size will be
-      clamped to 1 which means that data will be transmitted synchronously to the remote system one packet at a time;
-      send packet, wait for ack, send packet ... You can change this behaviour through the following sysctl after the modprobe
-      described above (don't forget the "sudo" for the on request case):
+   1. If a remote system does not use message or segment flow control the congestion window size will be clamped to 1 which
+      means that data will be transmitted synchronously to the remote system one packet at a time; send packet, wait for ack,
+      send packet ... You can change this behaviour by uncommenting the sysctl command in each of the startup descriptions
+      above and selecting a suitable value.
       
-            sysctl -w net.decnet.no_fc_max_cwnd=n
-            
-      where n is the maximum size of the congestion window (# of packets which can be in flight at a time). Note that
-      delayed acks are not currently implemented for outbound traffic.
+      The flow control mechanism used may be different in each direction and is typically constant for a specific
+      system implementation. The following table is not exhaustive:
       
+            Linux (this implementation)             No flow control
+            VAX/VMS 7.3 - Phase IV                  No flow control
+            RSX-11M+ 4.6                            Session control message flow control
+            Ultrix 2.2                              No flow control
+            Ultrix 4.0                              No flow control
+      
+   2. Delayed acks are an optional DECnet component to reduce the amount of traffic flowing over the network. There is a
+      sysctl parameter, "net.decnet.dlyack_seq" which is set to a default value of 3. This means that when sending large
+      blocks of data, every third packet will request an explicit ack. In order to make use of delayed acks when the remote
+      system supports "no flow control", "net.decnet.no_fc_max_cwnd" should be increased and, ideally, should be at least
+      2 * net.decnet.dlyack_seq.
+      
+   3. As of 5/5/2020 I changed the startup sequence as described in section 6 above. The old version failed to create
+      /proc/net/decnet_dev which describes the devices being used.
       
 Systems Tested:
 
@@ -159,5 +179,12 @@ Raspberry Pi 2B V1.1 (2019-7-10 version of Raspbian Buster)
 
 Raspberry Pi 4B (2 GB)(2019-7-10 and 2019-9-26 versions of Raspbian Buster)
 
-In addition, this code has been successfully run on the Raspberry Pi 4B running the "testing" 64-bit Raspbian kernel (still
-uses 32-bit userland).
+Raspberry Pi 4B (2 GB) "testing" 64-bit Raspbian kernel (still uses 32-bit userland).
+
+In addition this code has been tested on Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
+
+Due to kernel changes, the above no longer work.
+
+Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
+
+
