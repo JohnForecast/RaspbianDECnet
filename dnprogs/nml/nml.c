@@ -265,7 +265,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
                                 buf[ptr++] = 0x3e;  // 830=NEXT NODE
                                 buf[ptr++] = 0x03;
 
-                                if (rn->n_name) {
+                                if (rn->n_name && strlen(rn->n_name)) {
                                         buf[ptr++] = 0xC2;      // CM-2
                                         buf[ptr++] = 0x02;
                                         buf[ptr++] = rn->n_addr[0];
@@ -372,9 +372,10 @@ static int send_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
                 int node = faddr & 0x3ff;
                 int area = faddr >> 10;
                 struct nodeent *ne;
+                char *devname = if_index_to_name(interface);
 
-                /* Do not consider ourselves adjacent */
-                if (faddr == local_node)
+                /* Do not consider ourselves or loopback device adjacent */
+                if ((faddr == local_node) || (strcmp(devname, "lo") == 0))
                         return 0;
 
                 ne = getnodebyaddr((char *)addr, 2, AF_DECnet);
