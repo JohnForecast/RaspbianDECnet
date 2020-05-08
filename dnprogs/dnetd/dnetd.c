@@ -44,6 +44,8 @@
 
 #define MAX_ARGS 256
 
+#define NODE_ADDRESS    "/proc/sys/net/decnet/node_address"
+
 void sigchild(int s);
 void sigterm(int s);
 int  open_server_socket(void);
@@ -81,8 +83,8 @@ void exec_daemon(int sockfd, char *daemon_name)
     argp = strtok(daemon_name, " ");
     while (argp && argc < MAX_ARGS)
     {
-	argv[argc++] = argp;
-	argp = strtok(NULL, " ");
+        argv[argc++] = argp;
+        argp = strtok(NULL, " ");
     }
     argv[argc] = NULL;
 
@@ -104,23 +106,23 @@ void exec_daemon(int sockfd, char *daemon_name)
     // Look for the daemon in $(prefix) if the name is not absolute
     if (daemon_name[0] != '/')
     {
-	if (strlen(binary_dir)+strlen(daemon_name)+1 > PATH_MAX)
-	{
-	    DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
-	    return;
-	}
-	strcpy(name, binary_dir);
-	strcat(name, "/");
-	strcat(name, daemon_name);
+        if (strlen(binary_dir)+strlen(daemon_name)+1 > PATH_MAX)
+        {
+            DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
+            return;
+        }
+        strcpy(name, binary_dir);
+        strcat(name, "/");
+        strcat(name, daemon_name);
     }
     else
     {
-	if (strlen(daemon_name) > PATH_MAX)
-	{
-	    DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
-	    return;
-	}
-	strcpy(name, daemon_name);
+        if (strlen(daemon_name) > PATH_MAX)
+        {
+            DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
+            return;
+        }
+        strcpy(name, daemon_name);
     }
 
     // Run it...
@@ -139,13 +141,13 @@ void mirror(int insock)
 
     while ( (readnum=read(insock,ibuf,sizeof(ibuf))) > 0)
     {
-	ibuf[0]=0x01;
-	if (write(insock,ibuf,readnum) < 0)
-	{
-	    DNETLOG((LOG_WARNING, "mirror, write failed: %m\n"));
-	    close(insock);
-	    break;
-	}
+        ibuf[0]=0x01;
+        if (write(insock,ibuf,readnum) < 0)
+        {
+            DNETLOG((LOG_WARNING, "mirror, write failed: %m\n"));
+            close(insock);
+            break;
+        }
     }
     close(insock);
 }
@@ -159,12 +161,37 @@ int main(int argc, char *argv[])
     int                fd;
     struct sockaddr_dn sockaddr;
     struct stat        st;
-    int		       debug=0;
+    int                debug=0;
     int                status;
     int                secure=0;
     int                len = sizeof(sockaddr);
     char               log_char = 'l'; // Default to syslog(3)
     char               condata[] = {0x00, 0x20}; // Actually 4096 as a LE word
+    FILE               *file;
+
+    /*
+     * Make sure that the DECnet module is loaded and has a valid node
+     * address.
+     */
+    if ((file = fopen(NODE_ADDRESS, "r")) != NULL)
+    {
+        int area, addr;
+
+        if ((fscanf(file, "%d.%d\n", &area, &addr) != 2) ||
+            (addr > 1023) || (addr <= 0) ||
+            (area > 63) || (area <= 0))
+        {
+            fprintf(stderr, "Invalid DECnet node address\n");
+            return -1;
+        }
+        fclose(file);
+    }
+    else
+    {
+        fprintf(stderr, "%s missing, is DECnet module loaded?\n",
+                NODE_ADDRESS);
+        return -1;
+    }
 
     // make default binaries directory name
     strcpy(binary_dir, BINARY_PREFIX);
@@ -176,58 +203,58 @@ int main(int argc, char *argv[])
     optind = 0;
     while ((opt=getopt(argc,argv,"?vVhp:sdl:")) != EOF)
     {
-	switch(opt)
-	{
-	case 'h':
-	    usage(argv[0], stdout);
-	    exit(0);
+        switch(opt)
+        {
+        case 'h':
+            usage(argv[0], stdout);
+            exit(0);
 
-	case '?':
-	    usage(argv[0], stderr);
-	    exit(0);
+        case '?':
+            usage(argv[0], stderr);
+            exit(0);
 
-	case 'v':
-	    verbosity++;
-	    break;
+        case 'v':
+            verbosity++;
+            break;
 
-	case 'd':
-	    debug++;
-	    break;
+        case 'd':
+            debug++;
+            break;
 
-	case 's':
-	    secure++;
-	    break;
+        case 's':
+            secure++;
+            break;
 
-	case 'V':
-	    printf("\ntaskd from dnprogs version %s\n\n", VERSION);
-	    exit(1);
-	    break;
+        case 'V':
+            printf("\ntaskd from dnprogs version %s\n\n", VERSION);
+            exit(1);
+            break;
 
-	case 'p':
-	    if (stat(optarg, &st) < 0)
-	    {
-		fprintf(stderr, "%s does not exist\n", optarg);
-		exit(-1);
-	    }
-	    if (!S_ISDIR(st.st_mode))
-	    {
-		fprintf(stderr, "%s is not a directory\n", optarg);
-		exit(-1);
-	    }
-	    strcpy(binary_dir, optarg);
-	    break;
+        case 'p':
+            if (stat(optarg, &st) < 0)
+            {
+                fprintf(stderr, "%s does not exist\n", optarg);
+                exit(-1);
+            }
+            if (!S_ISDIR(st.st_mode))
+            {
+                fprintf(stderr, "%s is not a directory\n", optarg);
+                exit(-1);
+            }
+            strcpy(binary_dir, optarg);
+            break;
 
-	case 'l':
-	    if (optarg[0] != 's' &&
-		optarg[0] != 'm' &&
-		optarg[0] != 'e')
-	    {
-		usage(argv[0], stderr);
-		exit(2);
-	    }
-	    log_char = optarg[0];
-	    break;
-	}
+        case 'l':
+            if (optarg[0] != 's' &&
+                optarg[0] != 'm' &&
+                optarg[0] != 'e')
+            {
+                usage(argv[0], stderr);
+                exit(2);
+            }
+            log_char = optarg[0];
+            break;
+        }
     }
 
     // Initialise logging
@@ -243,40 +270,40 @@ int main(int argc, char *argv[])
     fd = dnet_daemon(0, NULL, verbosity, debug?0:1);
     if (fd > -1)
     {
-	char *daemon_name = dnet_daemon_name();
-	struct   sockaddr_dn  sockaddr;
-	int      er;
-	unsigned int namlen = sizeof(sockaddr);
+        char *daemon_name = dnet_daemon_name();
+        struct   sockaddr_dn  sockaddr;
+        int      er;
+        unsigned int namlen = sizeof(sockaddr);
 
-	// Should we execute an external daemon ?
+        // Should we execute an external daemon ?
         // The external daemon should dnet_accept() the socket
-	if (daemon_name && strcmp(daemon_name, "internal"))
-	{
-	    if (verbosity >1)
-		DNETLOG((LOG_INFO, "Starting daemon '%s'\n", daemon_name));
-	    exec_daemon(fd, daemon_name);
-	    return 0;
-	}
+        if (daemon_name && strcmp(daemon_name, "internal"))
+        {
+            if (verbosity >1)
+                DNETLOG((LOG_INFO, "Starting daemon '%s'\n", daemon_name));
+            exec_daemon(fd, daemon_name);
+            return 0;
+        }
 
-	// Dispatch the object internally
-	// If it's a named object then run a task script
-	getsockname(fd, (struct sockaddr *)&sockaddr, &namlen);
-	if (sockaddr.sdn_objnamel)
-	{
-	    task_server(fd, verbosity, secure);
-	    return 0;
-	}
+        // Dispatch the object internally
+        // If it's a named object then run a task script
+        getsockname(fd, (struct sockaddr *)&sockaddr, &namlen);
+        if (sockaddr.sdn_objnamel)
+        {
+            task_server(fd, verbosity, secure);
+            return 0;
+        }
 
-	// Choose a numbered object
-	if ( sockaddr.sdn_objnum == getobjectbyname("MIRROR") ) {
-	    if (verbosity >1)
-		DNETLOG((LOG_INFO, "Doing mirror\n"));
-	    mirror(fd);
-	} else {
-	    DNETLOG((LOG_ERR, "Don't know how to handle object %d\n",
-		    sockaddr.sdn_objnum));
-	    dnet_reject(fd, DNSTAT_OBJECT, NULL, 0);
-	}
+        // Choose a numbered object
+        if ( sockaddr.sdn_objnum == getobjectbyname("MIRROR") ) {
+            if (verbosity >1)
+                DNETLOG((LOG_INFO, "Doing mirror\n"));
+            mirror(fd);
+        } else {
+            DNETLOG((LOG_ERR, "Don't know how to handle object %d\n",
+                    sockaddr.sdn_objnum));
+            dnet_reject(fd, DNSTAT_OBJECT, NULL, 0);
+        }
     }
     return 0;
 }
