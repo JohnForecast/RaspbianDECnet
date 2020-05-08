@@ -124,6 +124,21 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    05/08/2020:
+    
+   1. Network Management Listener (NML) now supports 2 additional NICE requests:
+   
+        - SHOW ACTIVE CIRCUITS
+        - SHOW ACTIVE NODES
+        
+   2. If an earlier version of decnet.ko was loaded via modprobe and supplied with an invalid
+      area or address, it would skip loading /proc/net/decnet_dev which would result in certain
+      network management requests failing. We now create the file and generate an error message
+      when dnetd is started.
+      
+      
+    02/10/2020:
+    
    1. Previous versions incorrectly accepted zero value for area and/or node
       via the kernel /proc interface although the decnetconf script
       mentioned above disallowed it.
@@ -186,5 +201,8 @@ In addition this code has been tested on Debian 10.0 (Buster) on x86 systems (bo
 Due to kernel changes, the above no longer work.
 
 Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
+
+Raspberry Pi 4B (2 GB) 2020-02-13 version of Raspbian Buster
+
 
 
