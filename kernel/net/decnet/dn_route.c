@@ -78,6 +78,7 @@
 #include <linux/rcupdate.h>
 #include <linux/times.h>
 #include <linux/export.h>
+#include <linux/version.h>
 #include <asm/errno.h>
 #include <net/net_namespace.h>
 #include <net/netlink.h>
@@ -1868,7 +1869,11 @@ void __init dn_route_init(void)
 	dn_route_timer.expires = jiffies + decnet_dst_gc_interval * HZ;
 	add_timer(&dn_route_timer);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
 	goal = totalram_pages >> (26 - PAGE_SHIFT);
+#else
+	goal = totalram_pages() >> (26 - PAGE_SHIFT);
+#endif
 
 	for(order = 0; (1UL << order) < goal; order++)
 		/* NOTHING */;
