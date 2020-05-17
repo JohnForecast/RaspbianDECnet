@@ -2386,7 +2386,7 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS_NETPROTO(PF_DECnet);
 
 static const char banner[] __initconst = KERN_INFO
-"NET4: DECnet for Linux: V.2.6.00a (C) 1995-2003 Linux DECnet Project Team\n";
+"NET4: DECnet for Linux: V.2.6.01a (C) 1995-2003 Linux DECnet Project Team\n";
 
 static int __init decnet_init(void)
 {
