@@ -1,0 +1,43 @@
+.TH DNETNML 8 "May 17 2020" "DECnet utilities"
+
+.SH NAME
+dnetnml \- DECnet Network Management Listener
+.SH SYNOPSIS
+.B dnetnml
+[options]
+.br
+Options:
+.br
+[\-dVvh]
+.SH DESCRIPTION
+.PP
+.B dnetnml
+is a daemon that serves incoming management requests from remote systems, usually
+NCP in the case of VMS and RSX. It is recommended that the daemon be run from dnetd
+by adding the following line to /etc/dnetd.conf:
+
+.br
+NML            19         N         nobody       dnetnml
+.br
+ 
+.br
+Currently it only serves a subset of information requests. These include all
+forms of requests (SUMMARY, STATUS and CHARACTERISTICS) for NODES, CIRCUITS and
+AREAS.
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose dnetnml will be. Don't use 
+more than one for normal operation because it will seriously impair 
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of dnetnml.
+.SH SEE ALSO
+.BR dnetd "(8), " dnetd.conf "(5)"
