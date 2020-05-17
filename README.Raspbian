@@ -124,6 +124,17 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    05/17/2020:
+    
+   1. Added a new Network Management Listener (NML) in dnprog/nml2. This version supports
+      SUMMARY, STATUS and CHARACTERISTICS for NODES, CIRCUITS and AREAS. I have not made this
+      version the default yet. To install it after installing everything else:
+      
+            cd dnprogs/nml2
+            make
+            sudo make install
+            
+            
     05/08/2020:
     
    1. Network Management Listener (NML) now supports 2 additional NICE requests:
