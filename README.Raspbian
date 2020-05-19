@@ -124,6 +124,12 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    05/19/2020:
+    
+   1. Added HELLO TIMER to CIRCUITS CHARACTERISTICS. Unable to add LISTEN TIMER until we can pull
+      the timer value from the router hello message and implement the T4 timer.
+      
+      
     05/17/2020:
     
    1. Added a new Network Management Listener (NML) in dnprog/nml2. This version supports
