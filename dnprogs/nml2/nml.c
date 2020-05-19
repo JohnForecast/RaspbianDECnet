@@ -39,6 +39,7 @@ static uint16_t localaddr, router = 0;
 static uint8_t localarea;
 static char routername[NICE_MAXNODEL + 1] = "";
 static char circuit[NICE_MAXCIRCUITL + 1] = "";
+static uint16_t hellotmr, listentmr;
 
 #define MAX_ACTIVE_NODES        1024
 
@@ -71,7 +72,12 @@ static void get_router(void)
         if (sscanf(buf, "%s %s %s %s %s %s %s %s %s",
                  var1, var2, var3, var4, var5, var6, var7,
                  var8, var9) == 9) {
+          int t;
+
           strncpy(circuit, var1, sizeof(circuit));
+
+          sscanf(var6, "%d", &t);
+          hellotmr = t;
 
           if (sscanf(buf, "%s %s %s %s %s %s %s %s %s ethernet %s",
                      var1, var2, var3, var4, var5, var6, var7, var8,
@@ -498,8 +504,10 @@ static void read_circuit_info(
         if (router)
           NICEparamNodeID(NICE_P_C_DR, router, routername);
 
-      if (how == NICE_READ_OPT_CHAR)
+      if (how == NICE_READ_OPT_CHAR) {
         NICEparamC1(NICE_P_C_TYPE, NICE_P_C_TYPE_ETHER);
+        NICEparamDU2(NICE_P_C_HELLO, hellotmr);
+      }
 
       NICEflush();
       break;
