@@ -124,6 +124,15 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    05/22/2020
+    
+   1. Implemented the missing LISTEN TIMER so that we can detect failed routers and added additional
+      code to allow changing the designated router. Note that in order to make the LISTEN TIMER
+      available to network management I had to change the format of /proc/net/decnet_dev so, if you
+      want network management support via nml or nml2 you must rebuild and install nml or nml2
+      after installing these kernel changes.
+      
+      
     05/19/2020:
     
    1. Added HELLO TIMER to CIRCUITS CHARACTERISTICS. Unable to add LISTEN TIMER until we can pull
@@ -221,7 +230,7 @@ Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
 
 Raspberry Pi 4B (2 GB) 2020-02-13 version of Raspbian Buster
 
-Raspberry Pi 4B (2 GB) 2020-02-13 version of Raspbian Buster running kernel 5.4.38 (32-bit)
+Raspberry Pi 4B (2 GB) 2020-02-13 version of Raspbian Buster running kernel 5.4.42 (32-bit)
 
 
 
