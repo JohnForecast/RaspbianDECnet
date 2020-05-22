@@ -59,8 +59,8 @@ uint16_t nodecount;
 static void get_router(void)
 {
   char buf[256];
-  char var1[32], var2[32], var3[32], var4[32], var5[32], var6[32];
-  char var7[32], var8[32], var9[32], var10[32], var11[32];
+  char var1[32], var2[32], var3[32], var4[32], var5[32], var6[32], var7[32];
+  char var8[32], var9[32], var10[32], var11[32], var12[32], var13[32];
   FILE *procfile = fopen(PROC_DECNET_DEV, "r");
 
   if (procfile) {
@@ -69,9 +69,9 @@ static void get_router(void)
         break;
 
       if (strstr(buf, "ethernet") != NULL) {
-        if (sscanf(buf, "%s %s %s %s %s %s %s %s %s",
+        if (sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s",
                  var1, var2, var3, var4, var5, var6, var7,
-                 var8, var9) == 9) {
+                 var8, var9, var10, var11) == 11) {
           int t;
 
           strncpy(circuit, var1, sizeof(circuit));
@@ -79,13 +79,16 @@ static void get_router(void)
           sscanf(var6, "%d", &t);
           hellotmr = t;
 
-          if (sscanf(buf, "%s %s %s %s %s %s %s %s %s ethernet %s",
+          sscanf(var8, "%d", &t);
+          listentmr = t;
+
+          if (sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s ethernet %s",
                      var1, var2, var3, var4, var5, var6, var7, var8,
-                     var9, var11) == 10) {
+                     var9, var10, var11, var13) == 12) {
             int area, node;
             struct nodeent *dp;
 
-            sscanf(var11, "%d.%d", &area, &node);
+            sscanf(var13, "%d.%d", &area, &node);
             router = (area << 10) | node;
 
             if ((dp = getnodebyaddr((char *)&router, sizeof(router), PF_DECnet)) != NULL)
@@ -507,6 +510,7 @@ static void read_circuit_info(
       if (how == NICE_READ_OPT_CHAR) {
         NICEparamC1(NICE_P_C_TYPE, NICE_P_C_TYPE_ETHER);
         NICEparamDU2(NICE_P_C_HELLO, hellotmr);
+        NICEparamDU2(NICE_P_C_LISTEN, listentmr);
       }
 
       NICEflush();

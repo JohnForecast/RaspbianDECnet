@@ -1037,11 +1037,11 @@ static void dn_eth_down(struct net_device *dev)
                 dev_mc_del(dev, dn_rt_all_rt_mcast);
 }
 
-static void dn_dev_set_timer(struct net_device *dev);
+static void dn_dev_set_timer3(struct net_device *dev);
 
-static void dn_dev_timer_func(struct timer_list *t)
+static void dn_dev_timer3_func(struct timer_list *t)
 {
-        struct dn_dev *dn_db = from_timer(dn_db, t, timer);
+        struct dn_dev *dn_db = from_timer(dn_db, t, timer3);
         struct net_device *dev;
         struct dn_ifaddr *ifa;
 
@@ -1061,19 +1061,54 @@ static void dn_dev_timer_func(struct timer_list *t)
                 dn_db->t3 -= dn_db->parms.t2;
         }
         rcu_read_unlock();
-        dn_dev_set_timer(dev);
+        dn_dev_set_timer3(dev);
 }
 
-static void dn_dev_set_timer(struct net_device *dev)
+static void dn_dev_set_timer3(struct net_device *dev)
 {
         struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
 
         if (dn_db->parms.t2 > dn_db->parms.t3)
                 dn_db->parms.t2 = dn_db->parms.t3;
 
-        dn_db->timer.expires = jiffies + (dn_db->parms.t2 * HZ);
+        dn_db->timer3.expires = jiffies + (dn_db->parms.t2 * HZ);
 
-        add_timer(&dn_db->timer);
+        add_timer(&dn_db->timer3);
+}
+
+static void dn_dev_set_timer4(struct net_device *dev);
+
+static void dn_dev_timer4_func(struct timer_list *t)
+{
+        struct dn_dev *dn_db = from_timer(dn_db, t, timer4);
+        struct net_device *dev;
+        struct neighbour *router;
+        struct dn_neigh *dn;
+
+        rcu_read_lock();
+        dev = dn_db->dev;
+        if (dn_db->t4 <= 1) {
+                if ((router = xchg(&dn_db->router, NULL)) != NULL) {
+                        dn = container_of(router, struct dn_neigh, n);
+                        dn->flags &= ~(DN_NDFLAG_R1 | DN_NDFLAG_R2);
+                        neigh_release(router);
+                }
+                dn_db->listen = DN_BCT3MULT * dn_db->parms.t3;
+                dn_db->t4 = dn_db->listen;
+        } else {
+                dn_db->t4 -= 1;
+        }
+        rcu_read_unlock();
+        dn_dev_set_timer4(dev);
+}
+
+static void dn_dev_set_timer4(struct net_device *dev)
+{
+        struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
+
+        dn_db->timer4.expires = jiffies + HZ;
+
+        add_timer(&dn_db->timer4);
 }
 
 static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
@@ -1111,7 +1146,8 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
 
         rcu_assign_pointer(dev->dn_ptr, dn_db);
         dn_db->dev = dev;
-        timer_setup(&dn_db->timer, dn_dev_timer_func, 0);
+        timer_setup(&dn_db->timer3, dn_dev_timer3_func, 0);
+        timer_setup(&dn_db->timer4, dn_dev_timer4_func, 0);
 
         dn_db->uptime = jiffies;
 
@@ -1133,8 +1169,16 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
 
         dn_dev_sysctl_register(dev, &dn_db->parms);
 
-        dn_dev_set_timer(dev);
+        dn_dev_set_timer3(dev);
 
+        /*
+         * Timer4 only needs to be started for devices which use a listen
+         * timer. For now that means Ethernet only.
+         */
+        if (dn_db->parms.type == ARPHRD_ETHER) {
+                dn_db->t4 = DN_BCT3MULT * dn_db->parms.t3;
+                dn_dev_set_timer4(dev);
+        }
         *err = 0;
         return dn_db;
 }
@@ -1210,7 +1254,8 @@ static void dn_dev_delete(struct net_device *dev)
         if (dn_db == NULL)
                 return;
 
-        del_timer_sync(&dn_db->timer);
+        del_timer_sync(&dn_db->timer3);
+        del_timer_sync(&dn_db->timer4);
         dn_dev_sysctl_unregister(&dn_db->parms);
         dn_dev_check_default(dev);
         neigh_ifdown(&dn_neigh_table, dev);
@@ -1364,19 +1409,20 @@ static char *dn_type2asc(char type)
 static int dn_dev_seq_show(struct seq_file *seq, void *v)
 {
         if (v == SEQ_START_TOKEN)
-                seq_puts(seq, "Name     Flags T1   Timer1 T3   Timer3 BlkSize Pri State DevType    Router Peer\n");
+                seq_puts(seq, "Name     Flags T1   Timer1 T3   Timer3 T4   Timer4 BlkSize Pri State DevType    Router Peer\n");
         else {
                 struct net_device *dev = v;
                 char peer_buf[DN_ASCBUF_LEN];
                 char router_buf[DN_ASCBUF_LEN];
                 struct dn_dev *dn_db = rcu_dereference(dev->dn_ptr);
 
-                seq_printf(seq, "%-8s %1s     %04u %04u   %04lu %04lu"
+                seq_printf(seq, "%-8s %1s     %04u %04u   %04lu %04lu   %04lu %04lu"
                                 "   %04hu    %03d %02x    %-10s %-7s %-7s\n",
                                 dev->name ? dev->name : "???",
                                 dn_type2asc(dn_db->parms.mode),
                                 0, 0,
                                 dn_db->t3, dn_db->parms.t3,
+                                dn_db->t4, dn_db->listen,
                                 mtu2blksize(dev),
                                 dn_db->parms.priority,
                                 dn_db->parms.state, dn_db->parms.name,

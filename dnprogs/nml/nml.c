@@ -161,6 +161,8 @@ static unsigned short get_router(void)
         char var9[32];
         char var10[32];
         char var11[32];
+        char var12[32];
+        char var13[32];
         unsigned short router = 0;
         FILE *procfile = fopen(PROC_DECNET_DEV, "r");
 
@@ -170,11 +172,11 @@ static unsigned short get_router(void)
         {
                 if (!fgets(buf, sizeof(buf), procfile))
                         break;
-                if (sscanf(buf, "%s %s %s %s %s %s %s %s %s ethernet %s\n",
-                           var1,var2,var3,var4,var5,var6,var7,var8,var9,var11) == 10)
+                if (sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s ethernet %s\n",
+                           var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11,var13) == 12)
                 {
                         int area, node;
-                        sscanf(var11, "%d.%d\n", &area, &node);
+                        sscanf(var13, "%d.%d\n", &area, &node);
                         router = area<<10 | node;
                         break;
                 }
@@ -827,6 +829,8 @@ static int send_circuits(int sock)
         char var9[32];
         char var10[32];
         char var11[32];
+        char var12[32];
+        char var13[32];
         int count;
         int ptr;
         FILE *procfile = fopen(PROC_DECNET_DEV, "r");
@@ -839,14 +843,14 @@ static int send_circuits(int sock)
                 if (!fgets(buf, sizeof(buf), procfile))
                         break;
 
-                count = sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s\n",
+                count = sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                                var1, var2, var3, var4, var5, var6, var7,
-                               var8, var9, var10, var11);
+                               var8, var9, var10, var11, var12, var13);
 
-                if (strcmp(var10, "ethernet"))
+                if (strcmp(var12, "ethernet"))
                         continue;
 
-                if ((count == 10) || (count == 11))
+                if ((count == 12) || (count == 13))
                 {
                         dnetlog(LOG_DEBUG, "name=%s, count=%d\n",
                                 var1, count);
@@ -865,13 +869,13 @@ static int send_circuits(int sock)
                         buf[ptr++] = 0x81;
                         buf[ptr++] = 0;
 
-                        if (count == 11)
+                        if (count == 13)
                         {
                                 struct nodeent *rn;
                                 int area, node;
                                 unsigned short addr;
 
-                                sscanf(var11, "%d.%d\n", &area, &node);
+                                sscanf(var13, "%d.%d\n", &area, &node);
                                 addr = (area << 10) | node;
                                 rn = getnodebyaddr((char *)&addr, 2, PF_DECnet);
 

@@ -22,12 +22,6 @@
 #define NICE_MAXCIRCUITL        16
 
 /*
- * Architectural constants
- */
-#define T3MULT                  2               /* Non-broadcast multipler */
-#define BCT3MULT                3               /* Broadcast multiplier */
-
-/*
  * Function codes
  */
 #define NICE_FC_DLL             15              /* Request down-line load */
