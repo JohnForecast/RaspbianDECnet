@@ -71,7 +71,7 @@
 
 static int nsp_backoff[NSP_MAXRXTSHIFT + 1] = { 1, 2, 4, 8, 16, 32, 64, 64, 64, 64, 64, 64, 64 };
 
-static void dn_nsp_null_descructor(struct sk_buff *skb)
+static void dn_nsp_null_destructor(struct sk_buff *skb)
 {
 }
 
