@@ -44,6 +44,7 @@
 #include <linux/slab.h>
 #include <linux/jiffies.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 #include <net/net_namespace.h>
 #include <net/neighbour.h>
 #include <net/dst.h>
@@ -56,7 +57,12 @@
 #include <net/dn_neigh.h>
 #include <net/dn_fib.h>
 
-#define DN_IFREQ_SIZE (sizeof(struct ifreq) - sizeof(struct sockaddr) + sizeof(struct sockaddr_dn))
+#define DN_IFREQ_SIZE (offsetof(struct ifreq, ifr_ifru) + sizeof(struct sockaddr_dn))
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+#define NLMSG_PARSE     nlmsg_parse
+#else
+#define NLMSG_PARSE     nlmsg_parse_deprecated
+#endif
 
 static char dn_rt_all_end_mcast[ETH_ALEN] = {0xAB,0x00,0x00,0x04,0x00,0x00};
 static char dn_rt_all_rt_mcast[ETH_ALEN]  = {0xAB,0x00,0x00,0x03,0x00,0x00};
@@ -583,7 +589,7 @@ static int dn_nl_deladdr(struct sk_buff *skb, struct nlmsghdr *nlh,
         if (!net_eq(net, &init_net))
                 goto errout;
 
-        err = nlmsg_parse(nlh, sizeof(*ifm), tb, IFA_MAX, dn_ifa_policy,
+        err = NLMSG_PARSE(nlh, sizeof(*ifm), tb, IFA_MAX, dn_ifa_policy,
                           extack);
         if (err < 0)
                 goto errout;
@@ -629,7 +635,7 @@ static int dn_nl_newaddr(struct sk_buff *skb, struct nlmsghdr *nlh,
         if (!net_eq(net, &init_net))
                 return -EINVAL;
 
-        err = nlmsg_parse(nlh, sizeof(*ifm), tb, IFA_MAX, dn_ifa_policy,
+        err = NLMSG_PARSE(nlh, sizeof(*ifm), tb, IFA_MAX, dn_ifa_policy,
                           extack);
         if (err < 0)
                 return err;

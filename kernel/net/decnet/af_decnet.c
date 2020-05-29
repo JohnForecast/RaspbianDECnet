@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 /*
  * DECnet       An implementation of the DECnet protocol suite for the LINUX
@@ -116,6 +117,7 @@ Version 0.0.6    2.1.110   07-aug-98   Eduardo Marcelo Serrat
 #include <linux/route.h>
 #include <linux/netfilter.h>
 #include <linux/seq_file.h>
+#include <linux/version.h>
 #include <net/sock.h>
 #include <net/tcp_states.h>
 #include <net/flow.h>
@@ -446,7 +448,11 @@ static void dn_destruct(struct sock *sk)
         skb_queue_purge(&scp->other_xmit_queue);
         skb_queue_purge(&scp->other_receive_queue);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
         dst_release(rcu_dereference_check(sk->sk_dst_cache, 1));
+#else
+        dst_release(rcu_dereference_protected(sk->sk_dst_cache, 1));
+#endif
 }
 
 static unsigned long dn_memory_pressure;
@@ -2442,7 +2448,11 @@ static void __exit decnet_exit(void)
 
         proto_unregister(&dn_proto);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
         rcu_barrier_bh(); /* Wait for completion of call_rcu_bh()'s */
+#else
+        rcu_barrier(); /* Wait for completion of call_rcu()'s */
+#endif
 }
 module_exit(decnet_exit);
 #endif
