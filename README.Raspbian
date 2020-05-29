@@ -124,6 +124,11 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    05/28/2020
+    
+   1. Merged changes which were already in the 5.4 kernel tree. This included changed kernel APIs and
+      updated comments.
+      
     05/27/2020
 
    1. Fixed system panic when using the loopback device.
