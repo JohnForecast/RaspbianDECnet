@@ -246,9 +246,9 @@ With the name change to Raspberry Pi OS:
 
     32-bit:
     
-    Raspberry Pi Zero W 2020-05-27 version of Pi OS with kernel 4.19.122+
+    Raspberry Pi Zero W 2020-05-27 version of Pi OS with kernel 4.19.126 and 5.4.44
     
-    Raspberry Pi 4B (2 GB) 2020-05-27 version of Pi OS with kernel 4.19.122+ and 5.4.42+
+    Raspberry Pi 4B (2 GB) 2020-05-27 version of Pi OS with kernel 4.19.126 and 5.4.44
     
     64-bit:
     
