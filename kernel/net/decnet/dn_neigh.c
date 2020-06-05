@@ -139,7 +139,7 @@ static int dn_neigh_construct(struct neighbour *neigh)
         if ((dev->type == ARPHRD_IPGRE) || (dev->flags & IFF_POINTOPOINT))
                 memcpy(neigh->ha, dev->broadcast, dev->addr_len);
         else if ((dev->type == ARPHRD_ETHER) || (dev->type == ARPHRD_LOOPBACK))
-                dn_dn2eth(neigh->ha, dn->addr);
+          dn_dn2eth(neigh->ha, DN_ADDR(dn));
         else {
                 net_dbg_ratelimited("Trying to create neigh for hw %d\n",
                                     dev->type);
@@ -531,7 +531,7 @@ static void neigh_elist_cb(struct neighbour *neigh, void *_info)
         if (s->rs == NULL)
                 return;
 
-        dn_dn2eth(s->rs, dn->addr);
+        dn_dn2eth(s->rs, DN_ADDR(dn));
         s->rs += 6;
         *(s->rs) = neigh->nud_state & NUD_CONNECTED ? 0x80 : 0x0;
         *(s->rs) |= dn->priority;
@@ -564,7 +564,7 @@ static inline void dn_neigh_format_entry(struct seq_file *seq,
 
         read_lock(&n->lock);
         seq_printf(seq, "%-7s %s%s%s   %02x    %02d  %07ld %-8s\n",
-                   dn_addr2asc(le16_to_cpu(dn->addr), buf),
+                   dn_addr2asc(le16_to_cpu(DN_ADDR(dn)), buf),
                    (dn->flags&DN_NDFLAG_R1) ? "1" : "-",
                    (dn->flags&DN_NDFLAG_R2) ? "2" : "-",
                    (dn->flags&DN_NDFLAG_P3) ? "3" : "-",

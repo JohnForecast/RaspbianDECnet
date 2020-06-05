@@ -866,7 +866,7 @@ static void dn_send_endnode_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 
         if (dn_db->router) {
                 struct dn_neigh *dn = (struct dn_neigh *)dn_db->router;
-                dn_dn2eth(msg->neighbor, dn->addr);
+                dn_dn2eth(msg->neighbor, DN_ADDR(dn));
         }
 
         msg->timer   = cpu_to_le16((unsigned short)dn_db->parms.t3);
@@ -903,7 +903,7 @@ static int dn_am_i_a_router(struct dn_neigh *dn, struct dn_dev *dn_db, struct dn
         if (dn->priority != dn_db->parms.priority)
                 return 0;
 
-        if (le16_to_cpu(dn->addr) < le16_to_cpu(ifa->ifa_local))
+        if (le16_to_cpu(DN_ADDR(dn)) < le16_to_cpu(ifa->ifa_local))
                 return 1;
 
         return 0;
