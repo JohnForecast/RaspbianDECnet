@@ -39,100 +39,103 @@ struct dn_scp                                   /* Session Control Port */
         __u16          ackrcv_dat;
         __u16          ackrcv_oth;
         __u8           flowrem_sw;
-	__u8           flowloc_sw;
+        __u8           flowloc_sw;
+#define DN_FCVAL_DATA   0
+#define DN_FCVAL_INTR   4
+
 #define DN_SEND         2
 #define DN_DONTSEND     1
 #define DN_NOCHANGE     0
-	__u16		flowrem_dat;
-	__u16		flowrem_oth;
-	__u16		flowloc_dat;
-	__u16		flowloc_oth;
-	__u8		services_rem;
-	__u8		services_loc;
-	__u8		info_rem;
-	__u8		info_loc;
+        __u16           flowrem_dat;
+        __u16           flowrem_oth;
+        __u16           flowloc_dat;
+        __u16           flowloc_oth;
+        __u8            services_rem;
+        __u8            services_loc;
+        __u8            info_rem;
+        __u8            info_loc;
 
-	__u16		segsize_rem;
-	__u16		segsize_loc;
+        __u16           segsize_rem;
+        __u16           segsize_loc;
 
-	__u8		nonagle;
-	__u8		multi_ireq;
-	__u8		accept_mode;
-	unsigned long		seg_total; /* Running total of current segment */
+        __u8            nonagle;
+        __u8            multi_ireq;
+        __u8            accept_mode;
+        unsigned long           seg_total; /* Running total of current segment */
 
-	struct optdata_dn     conndata_in;
-	struct optdata_dn     conndata_out;
-	struct optdata_dn     discdata_in;
-	struct optdata_dn     discdata_out;
+        struct optdata_dn     conndata_in;
+        struct optdata_dn     conndata_out;
+        struct optdata_dn     discdata_in;
+        struct optdata_dn     discdata_out;
         struct accessdata_dn  accessdata;
 
         struct sockaddr_dn addr; /* Local address  */
-	struct sockaddr_dn peer; /* Remote address */
+        struct sockaddr_dn peer; /* Remote address */
 
-	/*
-	 * In this case the RTT estimation is not specified in the
-	 * docs, nor is any back off algorithm. Here we follow well
-	 * known tcp algorithms with a few small variations.
-	 *
-	 * snd_window: Max number of packets we send before we wait for
-	 *             an ack to come back. This will become part of a
-	 *             more complicated scheme when we support flow
-	 *             control.
-	 *
-	 * nsp_srtt:   Round-Trip-Time (x8) in jiffies. This is a rolling
-	 *             average.
-	 * nsp_rttvar: Round-Trip-Time-Varience (x4) in jiffies. This is the
-	 *             varience of the smoothed average (but calculated in
-	 *             a simpler way than for normal statistical varience
-	 *             calculations).
-	 *
-	 * nsp_rxtshift: Backoff counter. Value is zero normally, each time
-	 *               a packet is lost is increases by one until an ack
-	 *               is received. Its used to index an array of backoff
-	 *               multipliers.
-	 */
+        /*
+         * In this case the RTT estimation is not specified in the
+         * docs, nor is any back off algorithm. Here we follow well
+         * known tcp algorithms with a few small variations.
+         *
+         * snd_window: Max number of packets we send before we wait for
+         *             an ack to come back. This will become part of a
+         *             more complicated scheme when we support flow
+         *             control.
+         *
+         * nsp_srtt:   Round-Trip-Time (x8) in jiffies. This is a rolling
+         *             average.
+         * nsp_rttvar: Round-Trip-Time-Varience (x4) in jiffies. This is the
+         *             varience of the smoothed average (but calculated in
+         *             a simpler way than for normal statistical varience
+         *             calculations).
+         *
+         * nsp_rxtshift: Backoff counter. Value is zero normally, each time
+         *               a packet is lost is increases by one until an ack
+         *               is received. Its used to index an array of backoff
+         *               multipliers.
+         */
 #define NSP_MIN_WINDOW 1
 #define NSP_MAX_WINDOW (0x07fe)
-	unsigned long max_window;
-	unsigned long snd_window;
+        unsigned long max_window;
+        unsigned long snd_window;
 #define NSP_INITIAL_SRTT (HZ)
-	unsigned long nsp_srtt;
+        unsigned long nsp_srtt;
 #define NSP_INITIAL_RTTVAR (HZ*3)
-	unsigned long nsp_rttvar;
+        unsigned long nsp_rttvar;
 #define NSP_MAXRXTSHIFT 12
-	unsigned long nsp_rxtshift;
+        unsigned long nsp_rxtshift;
 
-	/*
-	 * Count of consecutive delayed acks
-	 */
-	int delayedacks;
+        /*
+         * Count of consecutive delayed acks
+         */
+        int delayedacks;
 
-	/*
-	 * Output queues, one for data, one for otherdata/linkservice
-	 */
-	struct sk_buff_head data_xmit_queue;
-	struct sk_buff_head other_xmit_queue;
+        /*
+         * Output queues, one for data, one for otherdata/linkservice
+         */
+        struct sk_buff_head data_xmit_queue;
+        struct sk_buff_head other_xmit_queue;
 
-	/*
-	 * Input queue for other data
-	 */
-	struct sk_buff_head other_receive_queue;
-	int other_report;
+        /*
+         * Input queue for other data
+         */
+        struct sk_buff_head other_receive_queue;
+        int other_report;
 
-	/*
-	 * Stuff to do with the slow timer
-	 */
-	unsigned long stamp;          /* time of last transmit */
-	unsigned long persist;
-	int (*persist_fxn)(struct sock *sk);
-	unsigned long keepalive;
-	void (*keepalive_fxn)(struct sock *sk);
-	unsigned long ackdelay;
+        /*
+         * Stuff to do with the slow timer
+         */
+        unsigned long stamp;          /* time of last transmit */
+        unsigned long persist;
+        int (*persist_fxn)(struct sock *sk);
+        unsigned long keepalive;
+        void (*keepalive_fxn)(struct sock *sk);
+        unsigned long ackdelay;
 };
 
 static inline struct dn_scp *DN_SK(struct sock *sk)
 {
-	return (struct dn_scp *)(sk + 1);
+        return (struct dn_scp *)(sk + 1);
 }
 
 /*
@@ -155,48 +158,48 @@ static inline struct dn_scp *DN_SK(struct sock *sk)
  */
 #define DN_SKB_CB(skb) ((struct dn_skb_cb *)(skb)->cb)
 struct dn_skb_cb {
-	__le16 dst;
-	__le16 src;
-	__u16 hops;
-	__le16 dst_port;
-	__le16 src_port;
-	__u8 services;
-	__u8 info;
-	__u8 rt_flags;
-	__u8 nsp_flags;
-	__u8 ack_delay;
-	__u16 segsize;
-	__u16 segnum;
-	__u16 xmit_count;
-	unsigned long stamp;
-	int iif;
+        __le16 dst;
+        __le16 src;
+        __u16 hops;
+        __le16 dst_port;
+        __le16 src_port;
+        __u8 services;
+        __u8 info;
+        __u8 rt_flags;
+        __u8 nsp_flags;
+        __u8 ack_delay;
+        __u16 segsize;
+        __u16 segnum;
+        __u16 xmit_count;
+        unsigned long stamp;
+        int iif;
 };
 
 static inline __le16 dn_eth2dn(unsigned char *ethaddr)
 {
-	return get_unaligned((__le16 *)(ethaddr + 4));
+        return get_unaligned((__le16 *)(ethaddr + 4));
 }
 
 static inline __le16 dn_saddr2dn(struct sockaddr_dn *saddr)
 {
-	return *(__le16 *)saddr->sdn_nodeaddr;
+        return *(__le16 *)saddr->sdn_nodeaddr;
 }
 
 static inline void dn_dn2eth(unsigned char *ethaddr, __le16 addr)
 {
-	__u16 a = le16_to_cpu(addr);
-	ethaddr[0] = 0xAA;
-	ethaddr[1] = 0x00;
-	ethaddr[2] = 0x04;
-	ethaddr[3] = 0x00;
-	ethaddr[4] = (__u8)(a & 0xff);
-	ethaddr[5] = (__u8)(a >> 8);
+        __u16 a = le16_to_cpu(addr);
+        ethaddr[0] = 0xAA;
+        ethaddr[1] = 0x00;
+        ethaddr[2] = 0x04;
+        ethaddr[3] = 0x00;
+        ethaddr[4] = (__u8)(a & 0xff);
+        ethaddr[5] = (__u8)(a >> 8);
 }
 
 static inline void dn_sk_ports_copy(struct flowidn *fld, struct dn_scp *scp)
 {
-	fld->fld_sport = scp->addrloc;
-	fld->fld_dport = scp->addrrem;
+        fld->fld_sport = scp->addrloc;
+        fld->fld_dport = scp->addrrem;
 }
 
 unsigned int dn_mss_from_pmtu(struct net_device *dev, int mtu);
@@ -215,9 +218,9 @@ char *dn_addr2asc(__u16, char *);
 int dn_destroy_timer(struct sock *sk);
 
 int dn_sockaddr2username(struct sockaddr_dn *addr, unsigned char *buf,
-			 unsigned char type);
+                         unsigned char type);
 int dn_username2sockaddr(unsigned char *data, int len, struct sockaddr_dn *addr,
-			 unsigned char *type);
+                         unsigned char *type);
 
 void dn_start_slow_timer(struct sock *sk);
 void dn_stop_slow_timer(struct sock *sk);
@@ -235,9 +238,9 @@ extern long sysctl_decnet_mem[3];
 extern int sysctl_decnet_wmem[3];
 extern int sysctl_decnet_rmem[3];
 
-#define DN_DBG_RX_ROUTE		1	/* Log received routing packet */
-#define DN_DBG_RX_NSP		2	/* Log received NSP message */
-#define DN_DBG_RX_PACKET	4	/* Log received data packet */
-#define DN_DBG_TX_PACKET	16	/* Log transmitted data packet */
+#define DN_DBG_RX_ROUTE         1       /* Log received routing packet */
+#define DN_DBG_RX_NSP           2       /* Log received NSP message */
+#define DN_DBG_RX_PACKET        4       /* Log received data packet */
+#define DN_DBG_TX_PACKET        16      /* Log transmitted data packet */
 
 #endif /* _NET_DN_H */

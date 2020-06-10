@@ -1814,9 +1814,13 @@ static int dn_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
                          * N.B. Don't refer to skb or cb after this point
                          * in loop.
                          */
-                        if ((scp->flowloc_sw == DN_DONTSEND) && !dn_congested(sk)) {
-                                scp->flowloc_sw = DN_SEND;
-                                dn_nsp_send_link(sk, DN_SEND, 0);
+                        if (flags & MSG_OOB) {
+                                dn_nsp_send_link(sk, DN_FCVAL_INTR, 1);
+                        } else {
+                                if ((scp->flowloc_sw == DN_DONTSEND) && !dn_congested(sk)) {
+                                        scp->flowloc_sw = DN_SEND;
+                                        dn_nsp_send_link(sk, DN_FCVAL_DATA | DN_SEND, 0);
+                                }
                         }
                 }
 

@@ -543,7 +543,7 @@ static void dn_nsp_linkservice(struct sock *sk, struct sk_buff *skb)
                 switch(lsflags & 0x04) { /* FCVAL INT */
                 case 0x00: /* Normal Request */
                         switch(lsflags & 0x03) { /* FCVAL MOD */
-                        case 0x00: /* Request count */
+                        case DN_NOCHANGE: /* Request count */
                                 if (fcval < 0) {
                                         unsigned char p_fcval = -fcval;
                                         if ((scp->flowrem_dat > p_fcval) &&
@@ -555,10 +555,10 @@ static void dn_nsp_linkservice(struct sock *sk, struct sk_buff *skb)
                                         wake_up = 1;
                                 }
                                 break;
-                        case 0x01: /* Stop outgoing data */
+                        case DN_DONTSEND: /* Stop outgoing data */
                                 scp->flowrem_sw = DN_DONTSEND;
                                 break;
-                        case 0x02: /* Ok to start again */
+                        case DN_SEND: /* Ok to start again */
                                 scp->flowrem_sw = DN_SEND;
                                 dn_nsp_output(sk);
                                 wake_up = 1;
