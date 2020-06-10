@@ -124,6 +124,14 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    06/10/2020
+    
+   1. Fixed bugs related to flow control of interrupt messages - both inbound and outbound.
+   
+   2. Added initial implementation of dtr - DECnet test receiver. Tested against RSX, VMS and Ultrix
+      implementations.
+      
+      
     05/28/2020
     
    1. Merged changes which were already in the 5.4 kernel tree. This included changed kernel APIs and
