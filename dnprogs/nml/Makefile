@@ -17,7 +17,7 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON)
 	$(CC) $(CFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET) $(LIBDAEMON) -L ../dnroute/netlink -lnetlink
 
 install:
-	install -d $(prefix)/bin
+	install -d $(prefix)/sbin
 	install -d $(manprefix)/man/man8
 	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8
