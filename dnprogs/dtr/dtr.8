@@ -1,0 +1,39 @@
+.TH DNETNML 8 "Jun 9 2020" "DECnet utilities"
+
+.SH NAME
+dtr \- DECnet Test Receiver
+.SH SYNOPSIS
+.B dtr
+[options]
+.br
+Options:
+.br
+[\-dVvh]
+.SH DESCRIPTION
+.PP
+.B dtr
+is a daemon that responds to requests from the DECnet Test Sender on remote
+systems. It is recommended that the daemon be run from dnetd by adding the
+following line to /etc/dnetd.conf:
+
+.br
+DTR            63         N,N       nobody       dnetnml
+.br
+ 
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose dtr will be. Don't use 
+more than one for normal operation because it will seriously impair 
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of dtr.
+.SH SEE ALSO
+.BR dnetd "(8), " dnetd.conf "(5)"
