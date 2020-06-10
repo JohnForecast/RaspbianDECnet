@@ -1859,18 +1859,20 @@ out:
         return rv;
 }
 
-
 static inline int dn_queue_too_long(struct dn_scp *scp, struct sk_buff_head *queue, int flags)
 {
-        unsigned char fctype = scp->services_rem & NSP_FC_MASK;
-        if (skb_queue_len(queue) >= scp->snd_window)
-                return 1;
-        if (fctype != NSP_FC_NONE) {
-                if (flags & MSG_OOB) {
-                        if (scp->flowrem_oth == 0)
+        if (flags & MSG_OOB) {
+                if (scp->flowrem_oth == 0)
+                        return 1;
+        } else {
+                if (skb_queue_len(queue) >= scp->snd_window)
+                        return 1;
+
+                if ((scp->services_rem & NSP_FC_MASK) != NSP_FC_NONE) {
+                        if (scp->flowrem_dat == 0)
                                 return 1;
                 } else {
-                        if (scp->flowrem_dat == 0)
+                        if (scp->flowrem_sw == DN_DONTSEND)
                                 return 1;
                 }
         }
@@ -2075,8 +2077,7 @@ static int dn_sendmsg(struct socket *sock, struct msghdr *msg, size_t size)
 
                 if (flags & MSG_OOB) {
                         cb->nsp_flags = 0x30;
-                        if (fctype != NSP_FC_NONE)
-                                scp->flowrem_oth--;
+                        scp->flowrem_oth--;
                 } else {
                         cb->nsp_flags = 0x00;
                         if (scp->seg_total == 0)
