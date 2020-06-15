@@ -357,6 +357,7 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
         cb->services = *ptr++;
         cb->info = *ptr++;
         cb->segsize = le16_to_cpu(*(__le16 *)ptr);
+        skb_pull(skb, 4);
 
         if ((scp->state == DN_CI) || (scp->state == DN_CD)) {
                 scp->persist = 0;
