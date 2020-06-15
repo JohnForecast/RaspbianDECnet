@@ -29,6 +29,7 @@
  * Byte 0:              Test #
  * Byte 1:              Subtest/flags
  * Byte 2:              Flow control type (Data/Interrupt tests)
+ * Byte 2:              Interrupt flow control value (always 1)
  * Byte 3:              Flow control value (Data test)
  * Byte 3:              Message length (Interrupt test)
  * Byte 4,5:            Unknown
@@ -65,8 +66,12 @@
 #define DTS_DATA_MAXSIZE        4096
 #define DTS_INT_MAXSIZE           16
 
-#define DTS_STD_OPTDATA         "ABCDEFGHIJKLMNOP"
 #define DTS_PATTERN             "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+char std_optdata[16] = {
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+};
 
 /*
  * Note that RSX sends a short request block for interrupt tests (3 bytes)
@@ -174,7 +179,7 @@ void perform_test(
 
         case DTS_CONNDIS_STD:
           optdata.opt_optl = sizeof(optdata.opt_data);
-          memcpy(optdata.opt_data, DTS_STD_OPTDATA, sizeof(optdata.opt_data));
+          memcpy(optdata.opt_data, std_optdata, sizeof(optdata.opt_data));
           break;
 
         case DTS_CONNDIS_RCVD:
