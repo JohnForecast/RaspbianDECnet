@@ -69,6 +69,12 @@
 #include <net/dn_dev.h>
 #include <net/dn_route.h>
 
+struct sockaddr_dn dummyname = {
+  AF_DECnet,
+  0,
+  0,
+  5, "LINUX"
+};
 
 static int nsp_backoff[NSP_MAXRXTSHIFT + 1] = { 1, 2, 4, 8, 16, 32, 64, 64, 64, 64, 64, 64, 64 };
 
@@ -680,8 +686,16 @@ void dn_nsp_send_conninit(struct sock *sk, unsigned char msgflg)
 
         skb_put(skb, dn_sockaddr2username(&scp->peer,
                                           skb_tail_pointer(skb), type));
-        skb_put(skb, dn_sockaddr2username(&scp->addr,
-                                          skb_tail_pointer(skb), 2));
+        /*
+         * If there is no name bound to the socket, use a generic name
+         * ("LINUX") so that the remote system is happy.
+         */
+        if (scp->addr.sdn_objnamel != 0)
+          skb_put(skb, dn_sockaddr2username(&scp->addr,
+                                            skb_tail_pointer(skb), 2));
+        else
+          skb_put(skb, dn_sockaddr2username(&dummyname,
+                                            skb_tail_pointer(skb), 2));
 
         menuver = DN_MENUVER_ACC | DN_MENUVER_USR;
         if (scp->peer.sdn_flags & SDF_PROXY)
