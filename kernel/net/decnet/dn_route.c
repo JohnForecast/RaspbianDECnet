@@ -122,7 +122,6 @@ static struct dst_entry *dn_dst_check(struct dst_entry *, __u32);
 static unsigned int dn_dst_default_advmss(const struct dst_entry *dst);
 static unsigned int dn_dst_mtu(const struct dst_entry *dst);
 static void dn_dst_destroy(struct dst_entry *);
-static void dn_dst_ifdown(struct dst_entry *, struct net_device *dev, int how);
 static struct dst_entry *dn_dst_negative_advice(struct dst_entry *);
 static void dn_dst_link_failure(struct sk_buff *);
 static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
@@ -152,7 +151,6 @@ static struct dst_ops dn_dst_ops = {
         .mtu =                  dn_dst_mtu,
         .cow_metrics =          dst_cow_metrics_generic,
         .destroy =              dn_dst_destroy,
-        .ifdown =               dn_dst_ifdown,
         .negative_advice =      dn_dst_negative_advice,
         .link_failure =         dn_dst_link_failure,
         .update_pmtu =          dn_dst_update_pmtu,
@@ -167,20 +165,6 @@ static void dn_dst_destroy(struct dst_entry *dst)
         if (rt->n)
                 neigh_release(rt->n);
         dst_destroy_metrics_generic(dst);
-}
-
-static void dn_dst_ifdown(struct dst_entry *dst, struct net_device *dev, int how)
-{
-        if (how) {
-                struct dn_route *rt = (struct dn_route *) dst;
-                struct neighbour *n = rt->n;
-
-                if (n && n->dev == dev) {
-                        n->dev = dev_net(dev)->loopback_dev;
-                        dev_hold(n->dev);
-                        dev_put(dev);
-                }
-        }
 }
 
 static __inline__ unsigned int dn_hash(__le16 src, __le16 dst)

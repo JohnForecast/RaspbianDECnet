@@ -139,7 +139,7 @@ static int dn_neigh_construct(struct neighbour *neigh)
         if ((dev->type == ARPHRD_IPGRE) || (dev->flags & IFF_POINTOPOINT))
                 memcpy(neigh->ha, dev->broadcast, dev->addr_len);
         else if ((dev->type == ARPHRD_ETHER) || (dev->type == ARPHRD_LOOPBACK))
-          dn_dn2eth(neigh->ha, DN_ADDR(dn));
+                dn_dn2eth(neigh->ha, DN_ADDR(dn));
         else {
                 net_dbg_ratelimited("Trying to create neigh for hw %d\n",
                                     dev->type);
@@ -430,8 +430,12 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
                         if (dn_db->router != neigh) {
                                 struct neighbour *oldrouter;
 
-                                if ((oldrouter = xchg(&dn_db->router, neigh_clone(neigh))) != NULL)
+                                if ((oldrouter = xchg(&dn_db->router, neigh_clone(neigh))) != NULL) {
+                                        struct dn_neigh *dn = container_of(oldrouter, struct dn_neigh, n);
+
+                                        dn->flags &= ~(DN_NDFLAG_R1 | DN_NDFLAG_R2);
                                         neigh_release(oldrouter);
+                                }
 
                                 dn_db->listen = DN_BCT3MULT * le16_to_cpu(msg->timer);
                         }
