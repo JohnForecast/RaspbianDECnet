@@ -1,0 +1,107 @@
+.TH DTS 1 "June 19 2020" "DECnet utilities"
+
+.SH NAME
+dts \- DECnet Test Sender
+
+.SH SYNOPSIS
+.B dts
+TEST [OPTIONS] [remote[::]]
+.br
+.br
+.B dts
+accept [-o TYPE]
+.br
+.B dts
+reject [-o TYPE]
+.br
+.B dts
+disc [-o TYPE]
+.br
+.B dts
+abort [-o TYPE]
+.br
+.B dts
+data [-f flowtype] [-v n] [-l n] [-r disp] [-s] -t n]
+.br
+.B dts
+interrupt [-l n] [-r disp] [-s] [-t n]
+.br
+.sp
+The following default option values will be provided:
+.br
+.sp
+.RS
+-o none -f none -v 1 -t 30
+.br
+-l 1024                        for data
+.br
+-l 16                          for interrupt
+.br
+.RE
+.sp
+If remote is not specified it will connect to DTR on the local system.
+.br
+.sp
+In some cases it may be necessary to pass access control information so that
+the remote DTR runs in the correct system context. Both VMS and Ultrix style
+access control formats are supported:
+.br
+.sp
+.RS
+node"user password"::
+.br
+node/user/password::
+.RE
+.sp
+The "::" may be omitted.
+.br
+.SH DESCRIPTION
+dts connects to the DECnet Test Receiver (DTR, object 63) on the remote
+system and performs the requested test operation via the DECnet socket
+interface. accept/reject/disc/abort tests perform a single operation while
+data/interrupt repeatedly transmit data until the requested duration has been
+exceeded or an error is detected.
+.SH OPTIONS
+.TP 20
+.I "\-o none|std|rcvd"
+Controls how the DECnet Test Receiver (DTR) will return optional data to DTS
+for accept/reject/disc/abort tests. "\fInone\fP" does not return any optional
+data, "\fIstd\fP" returns a standard format ("ABCDEFGHIJKLMNOP") and
+"\fIrcvd\fP" returns the same data it received on the initial connect.
+.TP 20
+.I "\-f none|seg|msg"
+Requests the remote DTR to use the specified flow control mechanism when
+returning data messages to DTS. "\fInone\fP" uses SEND/DONOTSEND flow control,
+"\fIseg\fP" uses segment flow control and "\fImsg\fP" uses message flow
+control. Note that the remote DTR may ignore this request if it is unable to
+support the requested flow control method (Linux only supports "\fInone\fP").
+.TP 20
+.I "-v n"
+If the "\-f seg|msg" is used, this value is sent to the remote DTR as the
+default number of segments or messages which may be sent.
+.TP 20
+.I "\-l n"
+Controls the size of the data/interrupt messages to be sent. Data messages are
+limited to a maximum of 4096 bytes and interrupt messages are limited to a
+maximum of 16 bytes.
+.TP 20
+.I "\-r sink|seq|pat|echo"
+Controls how DTS contructs data/interrupt messages and DTR processes incoming
+messages. "\fIsink\fP" causes DTR to discard any messages it receives. For the
+other 3 cases, DTS places a sequence number (starting at 1) in the first 4
+bytes of the data and DTR checks to make sure the packets are received in the
+correct order. "\fIseq\fP" just performs a simple sequence check, "\fIpat\fP"
+causes DTS to fill the remainder of the data message with a standard value
+("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") and DTR will validate that the
+entire message is correct. "\fIecho\fP" operates similar to "\fIpat\fP" but
+DTR will also transmit the message back to DTS.
+.TP 20
+.I "\-s"
+Controls whether DTS will output statistics for data/interrupt tests
+indicating how many messages were transmitted/received, how much data was
+transmitted and the message and data transmission rates.
+.TP 20
+.I "\-t n"
+Controls how long the data/interrupt tests will run (in seconds).
+.SH SEE ALSO
+.BR dtr "(8)"
