@@ -349,7 +349,7 @@ void parse(void)
 
       default:
         if (*ptr == '\0')
-        state = FINISHED;
+          state = FINISHED;
         
         switch (state) {
           case USER:
@@ -363,9 +363,11 @@ void parse(void)
             } else {
               if (*ptr++ == sep)
                 state = PASSWORD;
-              else if (!term && (*ptr != ':'))
-                goto baduser;
-              state = FINISHED;
+              else {
+                if (!term && (*ptr != ':'))
+                  goto baduser;
+                state = FINISHED;
+              }
             }
             break;
             
@@ -380,9 +382,11 @@ void parse(void)
             } else {
               if (*ptr++ == sep)
                 state = ACCOUNT;
-              else if (!term && (*ptr != ':'))
-                goto badpass;
-              state = FINISHED;
+              else {
+                if (!term && (*ptr != ':'))
+                  goto badpass;
+                state = FINISHED;
+              }
             }
             break;
 
@@ -395,6 +399,9 @@ void parse(void)
               }
               accessdata.acc_acc[accessdata.acc_accl++] = *ptr++;
             } else state = FINISHED;
+            break;
+
+          case FINISHED:
             break;
 
           default:
