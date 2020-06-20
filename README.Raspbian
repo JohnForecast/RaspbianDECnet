@@ -124,6 +124,20 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    06/19/2020
+    
+   1. Fix Connect Initate transmit format if the socket has no name binding (VMS cannot handle a NULL name).
+   
+   2. Fix optional data on received connect confirm. Was taking the data from the wrong location in  the
+      message.
+      
+   3. Fix destination cache destruction. Was causing extra entries to be created in the neighbour cache.
+      Sometimes caused designated router to move to the loopback device so the node would become
+      inaccessible on the network.
+      
+   4. Initial checkin for dts.
+   
+   
     06/10/2020
     
    1. Fixed bugs related to flow control of interrupt messages - both inbound and outbound.
