@@ -833,9 +833,9 @@ static void test_data(
     do {
       int status;
       ssize_t rlen;
-      char rbuf[DTS_INT_MAXSIZE];
+      char rbuf[DTS_DATA_MAXSIZE];
 
-      if (send(sock, buf, lvalue, 0) != lvalue)
+      if (send(sock, buf, lvalue, MSG_EOR) != lvalue)
         break;
 
       msgsent++;

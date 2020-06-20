@@ -15,9 +15,9 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON)
 	$(CC) $(CFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET) $(LIBDAEMON)
 
 install:
-	install -d $(prefix)/sbin
+	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man1
-	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/bin
 	install -m 0644 $(MANPAGES1) $(manprefix)/man/man1
 
 dep depend:
