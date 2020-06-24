@@ -798,6 +798,18 @@ got_it:
         if (sk != NULL) {
                 struct dn_scp *scp = DN_SK(sk);
 
+                if (skb_dst(skb) != sk->sk_dst_cache) {
+                        /*
+                         * We may have a newer path to the remote system
+                         * which takes the Intra-Ethernet bit into
+                         * consideration. Switch the socket to this new
+                         * path but only if we are in the RUN state - we want
+                         * to avoid messing with sockets which are listening.
+                         */
+                        if (scp->state == DN_RUN)
+                                sk_dst_set(sk, dst_clone(skb_dst(skb)));
+                }
+
                 /* Reset backoff */
                 scp->nsp_rxtshift = 0;
 
