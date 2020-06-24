@@ -124,6 +124,15 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    06/23/2020
+    
+   1. The existing code would send outbound NSP-level packets directly to remote nodes if there was a valid
+      neighbour entry. It would ignore the Intra-Ethernet bit in the routing flags which is used to indicate
+      that the nodes are on the same ethernet and may communicate. The inbound logic built a new neighbour
+      entry which took the intra-ethernet bit into consideration but then discarded it. We now use this new
+      neighbour entry for subsequent transmissions once the socket has transitioned into the RUN state.
+      
+      
     06/19/2020
     
    1. Fix Connect Initate transmit format if the socket has no name binding (VMS cannot handle a NULL name).
