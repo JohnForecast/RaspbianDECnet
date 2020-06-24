@@ -93,7 +93,7 @@ char *tests[] = {
 #define CMD_INTERRUPT           5
 
 char *options[] = {
-  "o:", "o:", "o:", "o:", "f:v:l:r:st:", "l:r:st:"
+  "o:", "o:", "o:", "o:", "c:f:v:l:r:st:", "c:l:r:st:"
 };
 
 struct switchval {
@@ -136,6 +136,7 @@ extern char *optarg;
 /*
  * Test parameters
  */
+unsigned long long cvalue;
 int ovalue, fvalue, rvalue, lvalue, vvalue, tvalue;
 int sswitch = 0;
 
@@ -160,6 +161,7 @@ void usage(
   fprintf(f, "   accept/reject/disc/abort:\n");
   fprintf(f, "    -o none|std|rcvd - Type of returned optional data\n\n");
   fprintf(f, "   data:\n");
+  fprintf(f, "    -c n             - Limit count of data messages sent\n");
   fprintf(f, "    -f none|seg|msg  - Flow control type\n");
   fprintf(f, "    -v n             - Msg or seg flow control value\n");
   fprintf(f, "    -l n             - Data message size\n");
@@ -168,13 +170,14 @@ void usage(
   fprintf(f, "    -s               - Print test statistics\n");
   fprintf(f, "    -t n             - Test duration in seconds\n\n");
   fprintf(f, "   interrupt:\n");
+  fprintf(f, "    -c n             - Limit count of interrupt messages sent\n");
   fprintf(f, "    -l n             - Interrupt message size\n");
   fprintf(f, "    -r sink|seq|pat|echo\n");
   fprintf(f, "                     - Received message processing options\n");
   fprintf(f, "    -s               - Print test statistics\n");
   fprintf(f, "    -t n             - Test duration in seconds\n\n");
   fprintf(f, "Default options:\n");
-  fprintf(f, " -o none -f none -v 1 -l 1024 -t 30\n\n");
+  fprintf(f, " -o none -c 0 -f none -v 1 -l 1024 -t 30\n\n");
   fprintf(f, "The remote node defaults to the local system and may contain\n");
   fprintf(f, "control information in either VMS or Ultrix format:\n\n");
   fprintf(f, "    node\"user password\"[::]   or\n");
@@ -205,6 +208,7 @@ int main(
   int maxsize = DTS_DATA_MAXSIZE;
   char opt, *endptr;
   unsigned long val;
+  unsigned long long vall;
 
   if (argc >= 2) {
     /*
@@ -217,6 +221,7 @@ int main(
         /*
          * Initialize test parameters
          */
+        cvalue = 0;
         ovalue = DTS_CONNDIS_NONE;
         fvalue = DTS_DATA_NONE;
         rvalue = DTS_DATAINT_SINK;
@@ -234,6 +239,13 @@ int main(
           int idx;
 
           switch (opt) {
+            case 'c':
+              vall = strtoull(optarg, &endptr, 10);
+              if (*endptr != '\0')
+                goto done;
+              cvalue = vall;
+              break;
+
             case 'f':
               if ((idx = switchidx(optarg, fswitch)) == -1)
                 goto done;
@@ -757,12 +769,16 @@ static void test_interrupt(
       if (rvalue != DTS_DATAINT_SINK)
         *((uint32_t *)buf) = ++seqno;
 
+      if (cvalue)
+        if (msgsent >= cvalue)
+          break;
+
       gettimeofday(&currenttime, NULL);
       elapsed = ((currenttime.tv_sec - starttime.tv_sec) * 1000000) +
         (currenttime.tv_usec - starttime.tv_usec);
     } while (elapsed < testtime);
 
-    if (sswitch) {
+    if (sswitch && !cvalue) {
       float msgpersec = msgsent / tvalue;
 
       printf("Total messages XMIT   %10llu  RECV %10llu\n", msgsent, msgrcvd);
@@ -867,12 +883,16 @@ static void test_data(
       if (rvalue != DTS_DATAINT_SINK)
         *((uint32_t *)buf) = ++seqno;
 
+      if (cvalue)
+        if (msgsent >= cvalue)
+          break;
+
       gettimeofday(&currenttime, NULL);
       elapsed = ((currenttime.tv_sec - starttime.tv_sec) * 1000000) +
         (currenttime.tv_usec - starttime.tv_usec);
     } while (elapsed < testtime);
 
-    if (sswitch) {
+    if (sswitch && !cvalue) {
       float msgpersec = msgsent / tvalue;
 
       printf("Total messages XMIT   %10llu  RECV %10llu\n", msgsent, msgrcvd);

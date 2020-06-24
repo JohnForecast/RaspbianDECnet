@@ -1,4 +1,4 @@
-.TH DTS 1 "June 19 2020" "DECnet utilities"
+.TH DTS 1 "June 23 2020" "DECnet utilities"
 
 .SH NAME
 dts \- DECnet Test Sender
@@ -68,6 +68,11 @@ Controls how the DECnet Test Receiver (DTR) will return optional data to DTS
 for accept/reject/disc/abort tests. "\fInone\fP" does not return any optional
 data, "\fIstd\fP" returns a standard format ("ABCDEFGHIJKLMNOP") and
 "\fIrcvd\fP" returns the same data it received on the initial connect.
+.TP 20
+.I "\-c n"
+If non-zero, limits the number of data/interrupt messages which are
+transmitted. The test will terminate when this limit is exceeded or the
+elapsed time ("\-t n") passes, whichever happens first.
 .TP 20
 .I "\-f none|seg|msg"
 Requests the remote DTR to use the specified flow control mechanism when
