@@ -171,6 +171,8 @@ int dn_dev_set_default(struct net_device *dev, int force);
 struct net_device *dn_dev_get_default(void);
 int dn_dev_bind_default(__le16 *addr);
 
+int dn_dev_valid_mcast(struct sk_buff *skb);
+
 int register_dnaddr_notifier(struct notifier_block *nb);
 int unregister_dnaddr_notifier(struct notifier_block *nb);
 

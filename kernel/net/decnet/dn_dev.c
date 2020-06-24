@@ -1117,6 +1117,19 @@ static void dn_dev_set_timer4(struct net_device *dev)
         add_timer(&dn_db->timer4);
 }
 
+int dn_dev_valid_mcast(struct sk_buff *skb)
+{
+	struct net_device *dev = skb->dev;
+	struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
+
+	if (dev->type == ARPHRD_ETHER)
+		return memcmp(eth_hdr(skb)->h_dest,
+				dn_db->parms.forwarding == 0 ?
+				dn_rt_all_end_mcast : dn_rt_all_rt_mcast,
+				ETH_ALEN) == 0;
+	return 1;
+}
+
 static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
 {
         int i;

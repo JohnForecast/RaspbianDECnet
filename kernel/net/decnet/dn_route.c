@@ -697,15 +697,24 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
 
                 case DN_RT_PKT_L1RT:
                 case DN_RT_PKT_L2RT:
+			if (!dn_dev_valid_mcast(skb))
+				goto dump_it;
+
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_ROUTE,
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_route_discard);
                 case DN_RT_PKT_ERTH:
+			if (!dn_dev_valid_mcast(skb))
+				goto dump_it;
+
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_neigh_router_hello);
 
                 case DN_RT_PKT_EEDH:
+			if (!dn_dev_valid_mcast(skb))
+				goto dump_it;
+
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_neigh_endnode_hello);
@@ -1829,12 +1838,13 @@ static void dn_rt_cache_seq_stop(struct seq_file *seq, void *v)
 static int dn_rt_cache_seq_show(struct seq_file *seq, void *v)
 {
         struct dn_route *rt = v;
-        char buf1[DN_ASCBUF_LEN], buf2[DN_ASCBUF_LEN];
+        char buf1[DN_ASCBUF_LEN], buf2[DN_ASCBUF_LEN], buf3[DN_ASCBUF_LEN];
 
-        seq_printf(seq, "%-8s %-7s %-7s %04d %04d %04d\n",
+        seq_printf(seq, "%-8s %-7s %-7s %-7s %04d %04d %04d\n",
                    rt->dst.dev ? rt->dst.dev->name : "*",
                    dn_addr2asc(le16_to_cpu(rt->rt_daddr), buf1),
                    dn_addr2asc(le16_to_cpu(rt->rt_saddr), buf2),
+		   dn_addr2asc(le16_to_cpu(rt->rt_gateway), buf3),
                    atomic_read(&rt->dst.__refcnt),
                    rt->dst.__use, 0);
         return 0;
