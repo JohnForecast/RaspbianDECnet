@@ -124,6 +124,13 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    06/24/2020
+    
+   1. Discard routing multicast packets (hellos and L1, L2 routing packets) which were not expected to be
+      received due to multicast filtering. This can occur if promiscuous mode is enabled on the ethernet
+      NIC by programs like tcpdump or when using libpcap.
+      
+      
     06/23/2020
     
    1. The existing code would send outbound NSP-level packets directly to remote nodes if there was a valid
