@@ -46,6 +46,14 @@ a new kernel along with its associated modules and dtb files.
 
        note: DECnet: router support has not been tested.
 
+   2.3 Building a 64-bit kernel
+   
+       The easiest way to build a new kernel is to install the 64-bit version of piOS and build there.
+       Add ARCH=arm64 to all the "make" commands. The kernel will be left in arch/arm64/boot/Image and
+       needs to be copied to /boot/kernel8.img. (This build does not seem to generate the top-level dtb
+       but the one installed by default seems to work OK).
+       
+   
    Follow the remainder of the kernel build and installation guide. After a
    reboot the system will include DECnet support but it will not be active yet.
 
@@ -290,7 +298,8 @@ With the name change to Raspberry Pi OS:
     
     64-bit:
     
-    None yet
+    Raspberry Pi 4B (8 GB) 2020-05-27 version (fully updated on 6/26/2020) with kernel 5.4.49
+    
     
 
 
