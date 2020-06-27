@@ -51,7 +51,8 @@ a new kernel along with its associated modules and dtb files.
        The easiest way to build a new kernel is to install the 64-bit version of piOS and build there.
        Add ARCH=arm64 to all the "make" commands. The kernel will be left in arch/arm64/boot/Image and
        needs to be copied to /boot/kernel8.img. (This build does not seem to generate the top-level dtb
-       but the one installed by default seems to work OK).
+       but the one installed by default seems to work OK. The overlay dtbs are built but don't forget to copy
+       them from arch/arm64/boot/dts/overlays).
        
    
    Follow the remainder of the kernel build and installation guide. After a
