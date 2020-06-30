@@ -133,6 +133,11 @@ a new kernel along with its associated modules and dtb files.
 
 Changes from previous DECnet for Linux releases:
 
+    06/30/2020
+    
+   1. Backed out commit 8926684 and made the code contionally compiled based of the Linux kernel version
+      being built. This will allow older version of the Linux kernel to run the latest code.
+      
     06/24/2020
     
    1. Discard routing multicast packets (hellos and L1, L2 routing packets) which were not expected to be
@@ -281,7 +286,6 @@ Raspberry Pi 4B (2 GB) "testing" 64-bit Raspbian kernel (still uses 32-bit userl
 
 In addition this code has been tested on Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
 
-Due to kernel changes, the above no longer work.
 
 Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
 
