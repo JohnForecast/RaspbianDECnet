@@ -124,9 +124,14 @@ static unsigned int dn_dst_mtu(const struct dst_entry *dst);
 static void dn_dst_destroy(struct dst_entry *);
 static struct dst_entry *dn_dst_negative_advice(struct dst_entry *);
 static void dn_dst_link_failure(struct sk_buff *);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,19,93)
+static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
+                               struct sk_buff *skb , u32 mtu);
+#else
 static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
                                struct sk_buff *skb , u32 mtu,
                                bool confirm_neigh);
+#endif
 static void dn_dst_redirect(struct dst_entry *dst, struct sock *sk,
                             struct sk_buff *skb);
 static struct neighbour *dn_dst_neigh_lookup(const struct dst_entry *dst,
@@ -251,9 +256,14 @@ static int dn_dst_gc(struct dst_ops *ops)
  * We update both the mtu and the advertised mss (i.e. the segment size we
  * advertise to the other end).
  */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,19,93)
+static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
+                               struct sk_buff *skb, u32 mtu)
+#else
 static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
                                struct sk_buff *skb, u32 mtu,
                                bool confirm_neigh)
+#endif
 {
         struct dn_route *rt = (struct dn_route *) dst;
         struct neighbour *n = rt->n;
