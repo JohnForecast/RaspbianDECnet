@@ -50,10 +50,16 @@ a new kernel along with its associated modules and dtb files.
    
        The easiest way to build a new kernel is to install the 64-bit version of piOS and build there.
        Add ARCH=arm64 to all the "make" commands. The kernel will be left in arch/arm64/boot/Image and
-       needs to be copied to /boot/kernel8.img. (This build does not seem to generate the top-level dtb
-       but the one installed by default seems to work OK. The overlay dtbs are built but don't forget to copy
-       them from arch/arm64/boot/dts/overlays).
+       needs to be copied to /boot/kernel8.img. The build and copy command will be slightly different
+       for the 64-bit kernel than what is documented in the instructions above:
        
+            make -j4 Image modules dtbs
+            sudo make modules_install
+            sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/
+            sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/overlays/
+            sudo cp arch/arm64/boot/dts/overlays/README /boot/overlays/
+            sudo cp arch/arm64/boot/Image /boot/kernel8.img
+            
    
    Follow the remainder of the kernel build and installation guide. After a
    reboot the system will include DECnet support but it will not be active yet.
@@ -303,7 +309,7 @@ With the name change to Raspberry Pi OS:
     
     64-bit:
     
-    Raspberry Pi 4B (8 GB) 2020-05-27 version (fully updated on 6/26/2020) with kernel 5.4.49
+    Raspberry Pi 4B (8 GB) 2020-05-27 version (fully updated on 6/26/2020) with kernel 5.4.50
     
     
 
