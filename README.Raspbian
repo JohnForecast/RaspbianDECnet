@@ -136,14 +136,71 @@ a new kernel along with its associated modules and dtb files.
         Where area,node is your node address (note the comma separator) and will have been
         used above to set the MAC address of the ethernet adapter.
 
-
+7. Most of the above (sections 1 - 5) may be automated by downloading the BuildAndInstall.sh shell script,
+   making it executable and running it inside a newly created work directory. You will still need to decide
+   how to start up DECnet (section 6 above).
+   
+   7A. Build and install on current system
+   
+       By default, BuildAndInstall.sh will download, build and install a new Linux kernel and DECnet utilities
+       tailored for the system it is running on. If you try to run BuildAndInstall.sh a second time, it will
+       notice that an existing build is already present and offer to re-install the existing binaries.
+       
+   7B. Build a master directory tree for installing on multiple Raspberry Pi's
+   
+       Note that 32-bit kernels can only be built while running a 32-bit system and 64-bit kernels can only be
+       built while running a 32-bit system.
+       
+       This description assumes that the master tree will be built either on a removable USB drive or NAS storage.
+       For a completely universal tree you will need to build the kernel 4 times; 3 on 32-bit systems and 1 on a
+       64-bit system. The following sequence will build a completely universal treee:
+       
+                mkdir -p Master/64-bit Master/32-bit/pi1 Master/32-bit/pi2_3 Master/32-bit/pi4
+                
+          The directories will hold:
+          
+            64-bit          - arm64 kernel/executables for all Raspberry Pi's capable of running 64-bit
+            32-bit/pi1      - arm32 kernel/executables for Model A, A+, B, B+, all Zeroes and Compute Module
+            32-bit/pi2_3    - arm32 kernel/executables for all Pi 2, 3 and Compute Module 3
+            32-bit/pi4      - arm32 kernel/executables for all Pi 4 and Compute Module 4
+            
+          Copy BuildAndInstall.sh to each of the above directories
+          
+          Boot into a 64-bit system
+          
+                cd Master/64-bit
+                ./BuildAndInstall.sh
+                
+          Answer the question that you want to exit after the build completes
+          
+          Boot into a 32-bit system
+          
+                cd Master/32-bit/pi1
+                forcekernel=kernel ./BuildAndInstall.sh
+                cd ../pi2_3
+                forcekernel=kernel7 ./BuildAndInstall.sh
+                cd ../pi4
+                forcekernel=kernel7l ./BuildAndInstall.sh
+                
+          To install from this master tree, mount the USB drive or NAS storage volume on the target Raspberry Pi,
+          cd to the appropriate directory depending on the hardware/software environment and execute BuildAndInstall.sh
+          again. The script will recognize that there is a build tree present and offer to install using the available
+          binaries.
+          
+                
 Changes from previous DECnet for Linux releases:
 
-    06/30/2020
+    07/08/2020
+    
+   1. Document BuildAndInstall.sh
+   
+   
+   06/30/2020
     
    1. Backed out commit 8926684 and made the code contionally compiled based of the Linux kernel version
       being built. This will allow older version of the Linux kernel to run the latest code.
-      
+   
+   
     06/24/2020
     
    1. Discard routing multicast packets (hellos and L1, L2 routing packets) which were not expected to be
