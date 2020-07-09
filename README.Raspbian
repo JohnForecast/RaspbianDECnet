@@ -170,8 +170,8 @@ a new kernel along with its associated modules and dtb files.
           
                 cd Master/64-bit
                 ./BuildAndInstall.sh
-                
-          Answer the question that you want to exit after the build completes
+          
+          At this point, answer the question about what to do when the build completes with "3 - Terminate the script".
           
           Boot into a 32-bit system
           
@@ -181,7 +181,9 @@ a new kernel along with its associated modules and dtb files.
                 forcekernel=kernel7 ./BuildAndInstall.sh
                 cd ../pi4
                 forcekernel=kernel7l ./BuildAndInstall.sh
-                
+          
+          If the "forcekernel=" option is used, the script will automatically terminate when the build completes.
+          
           To install from this master tree, mount the USB drive or NAS storage volume on the target Raspberry Pi,
           cd to the appropriate directory depending on the hardware/software environment and execute BuildAndInstall.sh
           again. The script will recognize that there is a build tree present and offer to install using the available
