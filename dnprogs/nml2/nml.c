@@ -328,7 +328,7 @@ static void read_node_executor(
           NICEvalueDU1(2);
           NICEvalueDU1(0);
           NICEvalueDU1(0);
-        NICEparamC1(NICE_P_N_TYPE, NICE_P_N_TYPE_NRTR_IV);
+        NICEparamC1(NICE_P_N_RTYPE, NICE_P_N_RTYPE_NRTR_IV);
         NICEparamDU2(NICE_P_N_MAXCIRCUITS, 1);
         /*** TODO - more ***/
         /*** add /proc/sys/net/decnet entries ***/
