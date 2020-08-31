@@ -192,6 +192,10 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    08/27/2020
+    
+   1. Fix NML2 response for "SHOW EXEC CHAR" as reported by Erik Olofsen
+   
     07/08/2020
     
    1. Document BuildAndInstall.sh
