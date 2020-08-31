@@ -61,6 +61,12 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
 #define DN_RT_INFO_BLKR 0x40 /* Blocking Requested            */
 
 /*
+ * Length of the routing headers
+ */
+#define DN_RT_HDR_SHORT	6    /* Short header                  */
+#define DN_RT_HDR_LONG	21   /* Long header                   */
+
+/*
  * Multipliers to be applied to the hello timer interval to generate
  * the listen timer.
  */

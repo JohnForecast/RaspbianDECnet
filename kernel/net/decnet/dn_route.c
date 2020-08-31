@@ -273,9 +273,9 @@ static void dn_dst_update_pmtu(struct dst_entry *dst, struct sock *sk,
         dn = n ? rcu_dereference_raw(n->dev->dn_ptr) : NULL;
 
         if (dn && dn->use_long == 0)
-                min_mtu -= 6;
+                min_mtu -= DN_RT_HDR_SHORT;
         else
-                min_mtu -= 21;
+                min_mtu -= DN_RT_HDR_LONG;
 
         if (dst_metric_raw(dst, RTAX_MTU) > mtu && mtu >= min_mtu) {
                 if (!(dst_metric_locked(dst, RTAX_MTU))) {
@@ -545,10 +545,13 @@ static int dn_route_rx_long(struct sk_buff *skb)
         struct dn_skb_cb *cb = DN_SKB_CB(skb);
         unsigned char *ptr = skb->data;
 
-        if (!pskb_may_pull(skb, 21)) /* 20 for long header, 1 for shortest nsp */
+        /*
+         * Check for remainder of long header + shortest NSP packet
+         */
+        if (!pskb_may_pull(skb, DN_RT_HDR_LONG - 1 + 1))
                 goto drop_it;
 
-        skb_pull(skb, 20);
+        skb_pull(skb, DN_RT_HDR_LONG - 1);
         skb_reset_transport_header(skb);
 
         /* Destination info */
@@ -707,23 +710,23 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
 
                 case DN_RT_PKT_L1RT:
                 case DN_RT_PKT_L2RT:
-			if (!dn_dev_valid_mcast(skb))
-				goto dump_it;
+                        if (!dn_dev_valid_mcast(skb))
+                                goto dump_it;
 
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_ROUTE,
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_route_discard);
                 case DN_RT_PKT_ERTH:
-			if (!dn_dev_valid_mcast(skb))
-				goto dump_it;
+                        if (!dn_dev_valid_mcast(skb))
+                                goto dump_it;
 
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_neigh_router_hello);
 
                 case DN_RT_PKT_EEDH:
-			if (!dn_dev_valid_mcast(skb))
-				goto dump_it;
+                        if (!dn_dev_valid_mcast(skb))
+                                goto dump_it;
 
                         return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
                                        &init_net, NULL, skb, skb->dev, NULL,
@@ -801,7 +804,7 @@ static int dn_forward(struct sk_buff *skb)
 
         /* Ensure that we have enough space for headers */
         rt = (struct dn_route *)skb_dst(skb);
-        header_len = dn_db->use_long ? 21 : 6;
+        header_len = dn_db->use_long ? DN_RT_HDR_LONG : DN_RT_HDR_SHORT;
         if (skb_cow(skb, LL_RESERVED_SPACE(rt->dst.dev)+header_len))
                 goto drop;
 
@@ -1854,7 +1857,7 @@ static int dn_rt_cache_seq_show(struct seq_file *seq, void *v)
                    rt->dst.dev ? rt->dst.dev->name : "*",
                    dn_addr2asc(le16_to_cpu(rt->rt_daddr), buf1),
                    dn_addr2asc(le16_to_cpu(rt->rt_saddr), buf2),
-		   dn_addr2asc(le16_to_cpu(rt->rt_gateway), buf3),
+                   dn_addr2asc(le16_to_cpu(rt->rt_gateway), buf3),
                    atomic_read(&rt->dst.__refcnt),
                    rt->dst.__use, 0);
         return 0;

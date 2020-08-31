@@ -80,6 +80,7 @@
 #define ACKDELAY        (3 * HZ)
 
 extern int decnet_log_martians;
+extern int decnet_segbufsize;
 
 static void dn_log_martian(struct sk_buff *skb, const char *msg)
 {
@@ -367,6 +368,17 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
                 scp->services_rem = cb->services;
                 scp->info_rem = cb->info;
                 scp->segsize_rem = cb->segsize;
+
+                /*
+                 * If the Connect Confirm message was received with
+                 * a short routing header or with the Intra-Ethernet bit
+                 * clear, revert to the "SEGMENT BUFFER SIZE" parameter since
+                 * traffic will be going off ethernet.
+                 */
+                if (((cb->rt_flags & DN_RT_PKT_MSK) == DN_RT_PKT_SHORT) ||
+                    ((cb->rt_flags & DN_RT_F_IE) == 0))
+                        scp->segsize_rem =
+                          decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 2);
 
                 if ((scp->services_rem & NSP_FC_MASK) == NSP_FC_NONE)
                         scp->max_window = decnet_no_fc_max_cwnd;
@@ -890,6 +902,17 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
                         scp->state = DN_RUN;
                         sk->sk_state = TCP_ESTABLISHED;
                         sk->sk_state_change(sk);
+
+                        /*
+                         * If the data or ack frame was received with a short
+                         * routing header or with the Intra-Ethernet bit
+                         * clear, revert to the "SEGMENT BUFFER SIZE"
+                         * parameter since traffic will be going off ethernet.
+                         */
+                        if (((cb->rt_flags & DN_RT_PKT_MSK) == DN_RT_PKT_SHORT) ||
+                            ((cb->rt_flags & DN_RT_F_IE) == 0))
+                                scp->segsize_rem =
+                                  decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 2);
                 }
 
                 if ((cb->nsp_flags & 0x1c) == 0)

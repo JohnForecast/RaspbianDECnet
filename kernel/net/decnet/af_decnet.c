@@ -1894,15 +1894,15 @@ unsigned int dn_mss_from_pmtu(struct net_device *dev, int mtu)
                 struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
                 mtu -= LL_RESERVED_SPACE(dev);
                 if (dn_db->use_long)
-                        mtu -= 21;
+                        mtu -= DN_RT_HDR_LONG;
                 else
-                        mtu -= 6;
+                        mtu -= DN_RT_HDR_SHORT;
                 mtu -= DN_MAX_NSP_DATA_HEADER;
         } else {
                 /*
-                 * 21 = long header, 16 = guess at MAC header length
+                 * 16 = guess at MAC header length
                  */
-                mtu -= (21 + DN_MAX_NSP_DATA_HEADER + 16);
+                mtu -= (DN_RT_HDR_LONG + DN_MAX_NSP_DATA_HEADER + 16);
         }
         if (mtu > mss)
                 mss = mtu;
