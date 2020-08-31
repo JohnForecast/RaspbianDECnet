@@ -192,9 +192,20 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    08/31/2020
+    
+   1. Add SEGMENT BUFFER SIZE to override the negotiated segment size when a connection goes outside the local LAN.
+      Erik Olofsen reported this problem on HECnet where connections would be correctly established but data would
+      fail to flow. The parameter is available via /proc/sys/net/decnet/segbufsize and through sysctl at
+      net.decnet.segbufsize and has a default value of 576.
+      
+   2. Modified nml2 to report SEGMENT BUFFER SIZE in the response for "SHOW EXEC CHAR"
+   
+   
     08/27/2020
     
    1. Fix NML2 response for "SHOW EXEC CHAR" as reported by Erik Olofsen
+   
    
     07/08/2020
     
