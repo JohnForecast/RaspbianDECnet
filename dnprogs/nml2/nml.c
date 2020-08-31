@@ -34,6 +34,7 @@
 
 #define PROC_DECNET_DEV "/proc/net/decnet_dev"
 #define PROC_DECNET     "/proc/net/decnet"
+#define PROC_SEGBUFSIZE "/proc/sys/net/decnet/segbufsize"
 
 static uint16_t localaddr, router = 0;
 static uint8_t localarea;
@@ -52,6 +53,29 @@ static uint16_t num_nodes = 0, num_links = 0;
 #define MAX_NODES               2048
 uint16_t knownaddr[MAX_NODES + 1];
 uint16_t nodecount;
+
+/*
+ * Read a single integer value from a file (typically /proc/sys/...).
+ */
+static int get_value(
+  char *name,
+  int *result
+)
+{
+  FILE *file = fopen(name, "r");
+  char buf[128];
+  
+  if (file) {
+    if (fgets(buf, sizeof(buf), file)) {
+      if (sscanf(buf, "%d", result) == 1) {
+        fclose(file);
+        return 1;
+      }
+    }
+    fclose(file);
+  }
+  return 0;
+}
 
 /*
  * Get the current designated router's address and the circuit being used.
@@ -288,7 +312,8 @@ static void read_node_executor(
   char physaddr[6] = { 0xAA, 0x00, 0x04, 0x00, 0x00, 0x00 };
   struct utsname un;
   char ident[256];
-
+  int segbufsize;
+  
   node = getnodebyaddr((char *)&localaddr, sizeof(localaddr), PF_DECnet);
 
   uname(&un);
@@ -330,6 +355,9 @@ static void read_node_executor(
           NICEvalueDU1(0);
         NICEparamC1(NICE_P_N_RTYPE, NICE_P_N_RTYPE_NRTR_IV);
         NICEparamDU2(NICE_P_N_MAXCIRCUITS, 1);
+
+        if (get_value(PROC_SEGBUFSIZE, &segbufsize))
+          NICEparamDU2(NICE_P_N_SEGBUFFERSIZE, segbufsize);
         /*** TODO - more ***/
         /*** add /proc/sys/net/decnet entries ***/
       }
