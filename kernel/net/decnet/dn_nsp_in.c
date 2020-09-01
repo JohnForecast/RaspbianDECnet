@@ -378,7 +378,7 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
                 if (((cb->rt_flags & DN_RT_PKT_MSK) == DN_RT_PKT_SHORT) ||
                     ((cb->rt_flags & DN_RT_F_IE) == 0))
                         scp->segsize_rem =
-                          decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 2);
+                          decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 6);
 
                 if ((scp->services_rem & NSP_FC_MASK) == NSP_FC_NONE)
                         scp->max_window = decnet_no_fc_max_cwnd;
@@ -912,7 +912,7 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
                         if (((cb->rt_flags & DN_RT_PKT_MSK) == DN_RT_PKT_SHORT) ||
                             ((cb->rt_flags & DN_RT_F_IE) == 0))
                                 scp->segsize_rem =
-                                  decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 2);
+                                  decnet_segbufsize - (DN_MAX_NSP_DATA_HEADER + 6);
                 }
 
                 if ((cb->nsp_flags & 0x1c) == 0)
