@@ -192,6 +192,12 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    09/01/2020
+    
+   1. Fix computing the actual remote segment size from the SEGMENT BUFFER SIZE parameter to comply with Appendix G of
+      the routing spec so that we can interoperate with other systems.
+      
+      
     08/31/2020
     
    1. Add SEGMENT BUFFER SIZE to override the negotiated segment size when a connection goes outside the local LAN.
