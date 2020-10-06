@@ -192,6 +192,17 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    10/06/2020
+    
+   1. Added a new File Access Listener (FAL) in dnprog/fal2. This version provides simple sequential file access (read/write)
+      and directory listing without file name case conversion (as performed by the current version). Tested against VAX/VMS, RSX-11M+,
+      RSTS/E, TOPS-10/20 and the Linux dnxxx utilities. To install this version after installing everything else:
+      
+            cd dnprogs/fal2
+            make
+            sudo make install
+            
+            
     09/01/2020
     
    1. Fix computing the actual remote segment size from the SEGMENT BUFFER SIZE parameter to comply with Appendix G of
