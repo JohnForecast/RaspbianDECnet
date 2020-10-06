@@ -1,0 +1,52 @@
+.TH FAL 8 "Oct 5 2020" "DECnet utilities"
+
+.SH NAME
+fal \- Alternate File Access Listener for DECnet
+.SH SYNOPSIS
+.B fal
+[options]
+.br
+Options:
+.br
+[\-dvV]
+.SH DESCRIPTION
+.PP
+.B fal
+is a daemon that serves incoming DAP (Data Access protocol) connections from
+remote systems. It provides sequential transfer and directory listing from
+remote machines using standard DECnet syntax.
+It should be started at system boot time (after DECnet has been started) and
+must be run as root. Note that this version of
+.B fal
+does not support decnet.proxy.
+.br
+The file names output by
+.B fal
+will always be Unix-style.
+.br
+The options below affect the behaviour of fal. If you are using
+.B dnetd
+then these options should be specified in the
+.B dnetd.conf(5)
+file.
+.br
+By default all files sent by fal will be sent in STREAMLF format.
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose fal will be. Don't use
+more than one for normal operation because it will seriously impair
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of fal.
+
+
+.SH SEE ALSO
+.BR dnetd "(8), " dnetd.conf "(5), " dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnsubmit "(1), " dnprint "(1)"
