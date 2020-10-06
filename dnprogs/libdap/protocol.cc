@@ -619,14 +619,10 @@ bool dap_config_message::write(dap_connection &c)
     bufsiz.set_short(buffer_size);
     bufsiz.write(c);
 
-    //ostype.set_byte(0,7);  // VAX/VMS (ho ho!)
-    ostype.set_byte(0,18);  // Ultrix (ho ho!)
-    // ostype.set_byte(0,26);  // Linux (ho ho!)
+    ostype.set_byte(0,7);  // VAX/VMS (ho ho!)
     ostype.write(c);
 
-    //filesys.set_byte(0,3); // RMS-32 (hee hee!)
-    filesys.set_byte(0,13); // UFS (hee hee!)
-    // filesys.set_byte(0,20); // Linux (hee hee!)
+    filesys.set_byte(0,3); // RMS-32 (hee hee!)
     filesys.write(c);
 
     version.set_byte(0,(unsigned char)7);

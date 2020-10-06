@@ -255,6 +255,8 @@ class dap_config_message: public dap_message
     static const int OS_WIN_NT  = 26;
     static const int OS_WIN_95  = 27;
 
+    static const int OS_LINUX   = 192;          // User-defined range
+  
     // File systems
     static const int FS_ILLEGAL = 0;
     static const int FS_RMS_11  = 1;
@@ -268,6 +270,8 @@ class dap_config_message: public dap_message
     static const int FS_OS_8    = 9;
     static const int FS_ULTRIX  = 14;
 
+  static const int FS_LINUX     = 192;          // User-defined range
+  
  private:
     dap_bytes bufsiz;
     dap_bytes ostype;
