@@ -149,7 +149,7 @@ a new kernel along with its associated modules and dtb files.
    7B. Build a master directory tree for installing on multiple Raspberry Pi's
    
        Note that 32-bit kernels can only be built while running a 32-bit system and 64-bit kernels can only be
-       built while running a 32-bit system.
+       built while running a 64-bit system.
        
        This description assumes that the master tree will be built either on a removable USB drive or NAS storage.
        For a completely universal tree you will need to build the kernel 4 times; 3 on 32-bit systems and 1 on a
