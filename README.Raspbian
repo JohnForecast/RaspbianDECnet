@@ -192,6 +192,11 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    10/09/2020
+    
+   1. Add support in fal2 to know when it is talking to a Linux system pretending to be VAX/VMS.
+   
+   
     10/06/2020
     
    1. Added a new File Access Listener (FAL) in dnprog/fal2. This version provides simple sequential file access (read/write)
