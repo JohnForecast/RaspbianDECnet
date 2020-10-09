@@ -33,7 +33,8 @@ uint8_t sndbuf[BUFSIZ], rcvbuf[BUFSIZ];
 /*
  * Parameters extracted from received DAP messages.
  */
-uint8_t remOS = 0, remFS = 0, remVersion[5], remSYSCAP[12], remLen = 0;
+uint8_t remOS = 0, remFS = 0, remVersion[5], remSYSCAP[12], remLen = 0,
+  remLinuxVMS = 0;
 uint16_t bufferSize = BUFSIZ;
 
 uint8_t remDATATYPE[2] = { (1 << DAP_DATATYPE_IMAGE) }, remORG = DAP_ORG_SEQ,
@@ -100,6 +101,26 @@ int ProcessConfigurationMessage(void)
             if (DAPexGetBit(syscap, DAP_SYSCP_2BYTELEN))
               remLen = 2;
           }
+          
+          /*
+           * We need to determine if the remote system is a real VAX/VMS
+           * system or a Linux system pretending to be VAX/VMS. We do this
+           * examining the configuration message and looking for specific
+           * supported features:
+           *
+           *    1. Linux sets the buffer size to 0xFFFF, VAX/VMS does not
+           *    2. VAX/VMS supports the following options, Linux does not:
+           *
+           *            A. Relative files
+           *            B. Command file submission (by FOP)
+           *            C. Segmented messages
+           */
+          remLinuxVMS = 1;
+          if ((bufsz != 0xFFFF) &&
+              DAPexGetBit(syscap, DAP_SYSCP_REL) &&
+              DAPexGetBit(syscap, DAP_SYSCP_CMDFILE) &&
+              DAPexGetBit(syscap, DAP_SYSCP_SEGMENTED))
+            remLinuxVMS = 0;
           
           /*
            * Create and send our configuration message.
