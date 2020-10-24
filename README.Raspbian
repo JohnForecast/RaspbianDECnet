@@ -9,6 +9,14 @@ The kit may be obtained by:
 Minimum kernel supported:   4.19.93
 Minimum Raspbian release:   2020-02-05
 
+Note: For kernel 5.8 and beyond
+
+    The help syntax in the Kconfig file has been changed in 5.8 and beyond. If you try
+    to build on 5.8 and beyond, you will get a syntax error during make config or
+    make menuconfig. You will need to edit RaspbianDECnet/kernel/net/decnet/Kconfig and
+    change "---help---" to "help". Once PiOS moves to 5.8 or later, I will make the
+    change here.
+    
 In order to bring up DECnet on Raspbian you will need to compile and install
 a new kernel along with its associated modules and dtb files.
 
