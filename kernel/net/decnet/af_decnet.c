@@ -162,7 +162,11 @@ static struct hlist_head dn_sk_hash[DN_SK_HASH_SIZE];
 static struct hlist_head dn_wild_sk;
 static atomic_long_t decnet_memory_allocated;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+static int __dn_setsockopt(struct socket *sock, int level, int optname, sockptr_t optval, unsigned int optlen, int flags);
+#else
 static int __dn_setsockopt(struct socket *sock, int level, int optname, char __user *optval, unsigned int optlen, int flags);
+#endif
 static int __dn_getsockopt(struct socket *sock, int level, int optname, char __user *optval, int __user *optlen, int flags);
 
 static struct hlist_head *dn_find_list(struct sock *sk)
@@ -689,7 +693,7 @@ static int dn_create(struct net *net, struct socket *sock, int protocol,
 {
         struct sock *sk;
 
-        if (protocol < 0 || protocol > SK_PROTOCOL_MAX)
+        if (protocol < 0 || protocol > U8_MAX)
                 return -EINVAL;
 
         if (!net_eq(net, &init_net))
@@ -1358,7 +1362,11 @@ out:
         return err;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+static int dn_setsockopt(struct socket *sock, int level, int optname, sockptr_t optval, unsigned int optlen)
+#else
 static int dn_setsockopt(struct socket *sock, int level, int optname, char __user *optval, unsigned int optlen)
+#endif  
 {
         struct sock *sk = sock->sk;
         int err;
@@ -1376,7 +1384,11 @@ static int dn_setsockopt(struct socket *sock, int level, int optname, char __use
         return err;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+static int __dn_setsockopt(struct socket *sock, int level,int optname, sockptr_t optval, unsigned int optlen, int flags)
+#else
 static int __dn_setsockopt(struct socket *sock, int level,int optname, char __user *optval, unsigned int optlen, int flags)
+#endif
 {
         struct  sock *sk = sock->sk;
         struct dn_scp *scp = DN_SK(sk);
@@ -1392,6 +1404,16 @@ static int __dn_setsockopt(struct socket *sock, int level,int optname, char __us
         } u;
         int err;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
+        if (optlen && sockptr_is_null(optval))
+                return -EINVAL;
+
+        if (optlen > sizeof(u))
+                return -EINVAL;
+
+        if (copy_from_sockptr(&u, optval, optlen))
+                return -EFAULT;
+#else
         if (optlen && !optval)
                 return -EINVAL;
 
@@ -1400,7 +1422,8 @@ static int __dn_setsockopt(struct socket *sock, int level,int optname, char __us
 
         if (copy_from_user(&u, optval, optlen))
                 return -EFAULT;
-
+#endif
+        
         switch (optname) {
         case DSO_CONDATA:
                 if (sock->state == SS_CONNECTED)
