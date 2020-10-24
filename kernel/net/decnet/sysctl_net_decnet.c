@@ -19,6 +19,7 @@
 #include <linux/fs.h>
 #include <linux/netdevice.h>
 #include <linux/string.h>
+#include <linux/version.h>
 #include <net/neighbour.h>
 #include <net/dst.h>
 #include <net/flow.h>
@@ -140,7 +141,11 @@ static int parse_addr(__le16 *addr, char *str)
 }
 
 static int dn_node_address_handler(struct ctl_table *table, int write,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+                                void *buffer,
+#else                                   
                                 void __user *buffer,
+#endif
                                 size_t *lenp, loff_t *ppos)
 {
         char addr[DN_ASCBUF_LEN];
@@ -155,9 +160,12 @@ static int dn_node_address_handler(struct ctl_table *table, int write,
         if (write) {
                 len = (*lenp < DN_ASCBUF_LEN) ? *lenp : (DN_ASCBUF_LEN-1);
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+                memcpy(addr, buffer, len);
+#else                
                 if (copy_from_user(addr, buffer, len))
                         return -EFAULT;
-
+#endif
                 addr[len] = 0;
                 strip_it(addr);
 
@@ -181,9 +189,12 @@ static int dn_node_address_handler(struct ctl_table *table, int write,
 
         if (len > *lenp) len = *lenp;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+        memcpy(buffer, addr, len);
+#else        
         if (copy_to_user(buffer, addr, len))
                 return -EFAULT;
-
+#endif
         *lenp = len;
         *ppos += len;
 
@@ -191,7 +202,11 @@ static int dn_node_address_handler(struct ctl_table *table, int write,
 }
 
 static int dn_def_dev_handler(struct ctl_table *table, int write,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+                                void *buffer,
+#else                              
                                 void __user *buffer,
+#endif
                                 size_t *lenp, loff_t *ppos)
 {
         size_t len;
@@ -207,9 +222,12 @@ static int dn_def_dev_handler(struct ctl_table *table, int write,
                 if (*lenp > 16)
                         return -E2BIG;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+                memcpy(devname, buffer, *lenp);
+#else                
                 if (copy_from_user(devname, buffer, *lenp))
                         return -EFAULT;
-
+#endif
                 devname[*lenp] = 0;
                 strip_it(devname);
 
@@ -244,9 +262,12 @@ static int dn_def_dev_handler(struct ctl_table *table, int write,
 
         if (len > *lenp) len = *lenp;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+        memcpy(buffer, devname, len);
+#else        
         if (copy_to_user(buffer, devname, len))
                 return -EFAULT;
-
+#endif
         *lenp = len;
         *ppos += len;
 
