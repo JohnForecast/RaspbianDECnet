@@ -108,6 +108,7 @@ struct dn_rt_hash_bucket
 
 extern struct neigh_table dn_neigh_table;
 
+int dn_IVprime = 0;
 
 static unsigned char dn_hiord_addr[6] = {0xAA,0x00,0x04,0x00,0x00,0x00};
 
@@ -717,6 +718,9 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_route_discard);
                 case DN_RT_PKT_ERTH:
+                        if (dn_IVprime && ((flags & DN_RT_PKT_IVP) == 0))
+                                goto dump_it;
+
                         if (!dn_dev_valid_mcast(skb))
                                 goto dump_it;
 

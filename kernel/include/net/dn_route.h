@@ -47,7 +47,9 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
 #define DN_RT_PKT_L1RT  0x07 /* Level 1 Routing Message       */
 #define DN_RT_PKT_L2RT  0x09 /* Level 2 Routing Message       */
 #define DN_RT_PKT_ERTH  0x0b /* Ethernet Router Hello         */
+#define DN_RT_PKT_IVP   0x10 /* From Phase IV Prime router    */
 #define DN_RT_PKT_EEDH  0x0d /* Ethernet EndNode Hello        */
+#define DN_RT_PKT_EEDHP 0x0f /* Ethernet EndNode Hello (Phase IV Prime) */
 
 /* Values for info field in hello message */
 #define DN_RT_INFO_TYPE 0x03 /* Type mask                     */
@@ -63,8 +65,8 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
 /*
  * Length of the routing headers
  */
-#define DN_RT_HDR_SHORT	6    /* Short header                  */
-#define DN_RT_HDR_LONG	21   /* Long header                   */
+#define DN_RT_HDR_SHORT 6    /* Short header                  */
+#define DN_RT_HDR_LONG  21   /* Long header                   */
 
 /*
  * Multipliers to be applied to the hello timer interval to generate

@@ -69,6 +69,16 @@ static char dn_rt_all_rt_mcast[ETH_ALEN]  = {0xAB,0x00,0x00,0x03,0x00,0x00};
 static char dn_hiord[ETH_ALEN]            = {0xAA,0x00,0x04,0x00,0x00,0x00};
 static unsigned char dn_eco_version[3]    = {0x02,0x00,0x00};
 
+/*
+ * The following multicast addresses are defined for Phase IV Prime
+ */
+static char dn_rt_all_rtp_mcast[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0A};
+#if 0
+static char dn_rt_unknown_dest[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0B};
+#endif
+
+extern int dn_IVprime;
+
 extern struct neigh_table dn_neigh_table;
 
 /*
@@ -855,7 +865,7 @@ static void dn_send_endnode_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 
         msg = skb_put(skb, sizeof(*msg));
 
-        msg->msgflg  = 0x0D;
+        msg->msgflg  = dn_IVprime ? DN_RT_PKT_EEDHP : DN_RT_PKT_EEDH;
         memcpy(msg->tiver, dn_eco_version, 3);
         dn_dn2eth(msg->id, ifa->ifa_local);
         msg->iinfo   = DN_RT_INFO_ENDN;
@@ -879,7 +889,9 @@ static void dn_send_endnode_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 
         skb_reset_network_header(skb);
 
-        dn_rt_finish_output(skb, dn_rt_all_rt_mcast, msg->id);
+        dn_rt_finish_output(skb,
+                            dn_IVprime ? dn_rt_all_rtp_mcast : dn_rt_all_rt_mcast,
+                            msg->id);
 }
 
 
@@ -1119,15 +1131,15 @@ static void dn_dev_set_timer4(struct net_device *dev)
 
 int dn_dev_valid_mcast(struct sk_buff *skb)
 {
-	struct net_device *dev = skb->dev;
-	struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
+        struct net_device *dev = skb->dev;
+        struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
 
-	if (dev->type == ARPHRD_ETHER)
-		return memcmp(eth_hdr(skb)->h_dest,
-				dn_db->parms.forwarding == 0 ?
-				dn_rt_all_end_mcast : dn_rt_all_rt_mcast,
-				ETH_ALEN) == 0;
-	return 1;
+        if (dev->type == ARPHRD_ETHER)
+                return memcmp(eth_hdr(skb)->h_dest,
+                                dn_db->parms.forwarding == 0 ?
+                                dn_rt_all_end_mcast : dn_rt_all_rt_mcast,
+                                ETH_ALEN) == 0;
+        return 1;
 }
 
 static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
@@ -1459,20 +1471,31 @@ static const struct seq_operations dn_dev_seq_ops = {
 };
 #endif /* CONFIG_PROC_FS */
 
-static int addr[2];
-module_param_array(addr, int, NULL, 0444);
+static int addr[2], count = 0;
+module_param_array(addr, int, &count, 0444);
 MODULE_PARM_DESC(addr, "The DECnet address of this machine: area,node");
+
+static char *ifname = "";
+module_param(ifname, charp, 0444);
+MODULE_PARM_DESC(ifname, "The network interface to use for DECnet");
 
 void __init dn_dev_init(void)
 {
-        if (addr[0] > 63 || addr[0] < 0) {
-                printk(KERN_ERR "DECnet: Area must be between 1 and 63");
-                addr[0] = addr[1] = 0;
-        }
+        if (count) {
+                if (count == 2) {
+                        if (addr[0] > 63 || addr[0] < 0) {
+                                printk(KERN_ERR "DECnet: Area must be between 1 and 63");
+                                addr[0] = addr[1] = 0;
+                        }
 
-        if (addr[1] > 1023 || addr[1] < 0) {
-                printk(KERN_ERR "DECnet: Node must be between 1 and 1023");
-                addr[0] = addr[1] = 0;
+                        if (addr[1] > 1023 || addr[1] < 0) {
+                                printk(KERN_ERR "DECnet: Node must be between 1 and 1023");
+                                addr[0] = addr[1] = 0;
+                        }
+                } else {
+                        printk(KERN_ERR "DECnet: area and node addresses required");
+                        addr[0] = addr[1] = 0;
+                }
         }
 
         decnet_address = cpu_to_le16((addr[0] << 10) | addr[1]);
