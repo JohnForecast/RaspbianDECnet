@@ -553,8 +553,8 @@ static void	ct_setup_link(void)
 	if (connect(sockfd, (struct sockaddr *)&sockaddr,
 		sizeof(sockaddr)) < 0)
 	{
-		perror("socket");
-		exit(-1);
+		perror("connect (cterm)");
+		//exit(-1);
 	}
 
 	if ( (cnt=dnet_recv(sockfd, buf, sizeof(buf), MSG_EOR)) < 0)
@@ -593,7 +593,7 @@ static void	ct_setup_link(void)
 		if (connect(sockfd, (struct sockaddr *)&sockaddr,
 			    sizeof(sockaddr)) < 0)
 		{
-			perror("connect, 2nd time");
+			perror("connect (dterm)");
 			exit(-1);
 		}
 
@@ -1675,6 +1675,7 @@ static void ct_read_pkt(void)
 static void proc_rsts_pkt(void)
 {
 	int data_cnt;
+	if (cnt==bufptr) return;
         if (debug == 2) { printf(" Entered static void proc_rsts_pkt...\n");}
 
 	if (buf[1] + (buf[2] << 8) != cnt)
