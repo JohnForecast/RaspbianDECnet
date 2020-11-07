@@ -30,11 +30,12 @@
 #include "libnetlink.h"
 #include "nice.h"
 
-#define IDENT_STRING    "DECnet for Linux"
+#define IDENT_STRING            "DECnet for Linux"
 
-#define PROC_DECNET_DEV "/proc/net/decnet_dev"
-#define PROC_DECNET     "/proc/net/decnet"
-#define PROC_SEGBUFSIZE "/proc/sys/net/decnet/segbufsize"
+#define PROC_DECNET_DEV         "/proc/net/decnet_dev"
+#define PROC_DECNET_CACHE       "/proc/net/decnet_cache"
+#define PROC_DECNET             "/proc/net/decnet"
+#define PROC_SEGBUFSIZE         "/proc/sys/net/decnet/segbufsize"
 
 static uint16_t localaddr, router = 0;
 static uint8_t localarea;
@@ -53,6 +54,9 @@ static uint16_t num_nodes = 0, num_links = 0;
 #define MAX_NODES               2048
 uint16_t knownaddr[MAX_NODES + 1];
 uint16_t nodecount;
+
+#define MAX_NODEADDRESS         65536
+uint16_t nexthop[MAX_NODEADDRESS];
 
 /*
  * Read a single integer value from a file (typically /proc/sys/...).
@@ -302,6 +306,48 @@ static void build_node_table(
 }
 
 /*
+ * Build the nexy hop table indexed by source node address. Each entry
+ * contains the next hop to get to the destination address. A value of 0
+ * indicates that we have no information available.
+ */
+static void build_nexthop_table(void)
+{
+  char buf[256];
+  char var1[32], var2[32], var3[32], var4[32], var5[32], var6[32], var7[32];
+  FILE *procfile = fopen(PROC_DECNET_CACHE, "r");
+  
+  memset(nexthop, 0, sizeof(nexthop));
+
+  if (procfile) {
+    while (!feof(procfile)) {
+      if (!fgets(buf, sizeof(buf), procfile))
+        break;
+
+      if (sscanf(buf, "%s %s %s %s %s %s %s\n",
+                 var1, var2, var3, var4, var5, var6, var7) == 7) {
+        int area, node;
+        uint16_t addr, next;
+
+        sscanf(var2, "%d.%d", &area, &node);
+        addr = (area << 10) | node;
+
+        sscanf(var4, "%d.%d", &area, &node);
+        next = (area << 10) | node;
+
+        /*
+         * There may be multiple entries in the cache for a particular
+         * destination node, entries with a gateway == destination always
+         * take precedent.
+         */
+        if ((nexthop[addr] == 0) || (addr == next))
+          nexthop[addr] = next;
+      }
+    }
+    fclose(procfile);
+  }
+}
+
+/*
  * Process read information requests about the executor node
  */
 static void read_node_executor(
@@ -380,7 +426,8 @@ static void read_node_single(
 )
 {
   struct nodeent *dp;
-
+  uint16_t next;
+  
   /*
    * If we only have a nodename, try to get it's associated address. If this
    * fails we just have to give up. If we only have a nodeaddress, try to
@@ -425,8 +472,18 @@ static void read_node_single(
         if (active || (address == router))
           if (circuit[0])
             NICEparamAIn(NICE_P_N_CIRCUIT, circuit);
-        if (router)
-          NICEparamNodeID(NICE_P_N_NEXTNODE, router, routername);
+
+        next = nexthop[address] != 0 ? nexthop[address] : router;
+        if (next) {
+          char *nextname = routername;
+
+          if (next != router) {
+            if ((dp = getnodebyaddr((char *)&next, 2, PF_DECnet)) != NULL)
+              nextname = dp->n_name;
+            else nextname = NULL;
+          }
+          NICEparamNodeID(NICE_P_N_NEXTNODE, next, nextname);
+        }
       }
       /*** TODO ***/
       NICEflush();
@@ -450,7 +507,7 @@ static void read_node_multi(
   build_node_table(subset);
 
   /*
-   * Forn KNOWN nodes we include the executor
+   * For KNOWN nodes we include the executor
    */
   if (subset == NICE_NFMT_KNOWN)
     read_node_executor(how);
@@ -475,7 +532,8 @@ static void read_node(
   char length, name[NICE_MAXNODEL + 1];
 
   scan_links();
-
+  build_nexthop_table();
+  
   if ((signed char)entity > 0) {
     /*
      * Node is specified by name
