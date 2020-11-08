@@ -115,8 +115,15 @@ void OpenFile(
         if (DAPexGetBit(remDATATYPE, DAP_DATATYPE_IMAGE))
           DAPexSetBit(buf, DAP_DATATYPE_IMAGE);
         DAPexDone(buf);
-        
-        DAPbPut(buf, DAP_RFM_STM);
+
+        /*
+         * If the remote system expects the file in ASCII, we'll send it
+         * as an ASCII stream.
+         */
+        if (DAPexGetBit(remDATATYPE, DAP_DATATYPE_ASCII)) {
+          DAPbPut(buf, DAP_RFM_STM);
+          remRFM = DAP_RFM_STM;
+        }
         DAPwrite(buf);
       }
 
@@ -245,27 +252,46 @@ int GetFileData(void)
 
       dbuf = DAPgetEnd(buf);
       
-      if (remRFM == DAP_RFM_VAR) {
-        /*
-         * For variable length records, we'll send one line in each Data
-         * message.
-         */
-        if (fgets((char *)dbuf, dataSize, fp) != NULL) {
+      switch (remRFM) {
+        case DAP_RFM_VAR:
           /*
-           * For implied LF/CR record attributes, strip any trailing newline
+           * For variable length record, we'll send one line in each Data
+           * message.
            */
-          if (DAPexGetBit(remRAT, DAP_RAT_CR))
-            if (((len = strlen((char *)dbuf)) > 0) && (dbuf[len - 1] == '\n'))
-              dbuf[len - 1] ='\0';
-          readlen = strlen((char *)dbuf);
-        } else eof = 1;
-      } else {
-        /*
-         * For fixed length records, we'll send as much data as will fit in
-         * each Data message.
-         */
-        if ((readlen = fread(dbuf, sizeof(uint8_t), dataSize, fp)) == 0)
-          eof = 1;
+          if (fgets((char *)dbuf, dataSize, fp) != NULL) {
+            /*
+             * For implied LF/CR record attributes, strip any trailing newline
+             */
+            if (DAPexGetBit(remRAT, DAP_RAT_CR))
+              if (((len = strlen((char *)dbuf)) > 0) && (dbuf[len - 1] == '\n'))
+                dbuf[len - 1] ='\0';
+            readlen = strlen((char *)dbuf);
+          } else eof = 1;
+          break;
+
+        case DAP_RFM_STM:
+          /*
+           * For ASCII stream format, we'll translate any terminating <LF>
+           * character into <CR><LF>.
+           */
+          if (fgets((char *)dbuf, dataSize - 2, fp) != NULL) {
+            if (((len = strlen((char *)dbuf)) > 0) && (dbuf[len - 1] == '\n')) {
+              dbuf[len - 1] = '\r';
+              dbuf[len] = '\n';
+              dbuf[len + 1] = '\0';
+            }
+            readlen = strlen((char *)dbuf);
+          } else eof = 1;
+          break;
+
+        default:
+          /*
+           * For fixed length records, we'll send as much data as will fit in
+           * each Data message.
+           */
+          if ((readlen = fread(dbuf, sizeof(uint8_t), dataSize, fp)) == 0)
+            eof = 1;
+          break;
       }
 
       if (eof) {
