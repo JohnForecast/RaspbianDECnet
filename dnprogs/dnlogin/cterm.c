@@ -601,6 +601,7 @@ static int cterm_process_characteristics(char *buf, int len)
         while (bufptr < len)
         {
                 selector = buf[bufptr] | (buf[bufptr+1]<<8);
+                bufptr += 2;            /* Skip over selector */
                 if ((selector & 0x300) != 0x200)
                 {
                         /*
@@ -617,7 +618,7 @@ static int cterm_process_characteristics(char *buf, int len)
                                 case 0x02:
                                 case 0x03:
                                 case 0x05:
-                                        bufptr += 4;
+                                        bufptr += 2;
                                         break;
 
                                 case 0x04:
@@ -626,12 +627,7 @@ static int cterm_process_characteristics(char *buf, int len)
                                 case 0x08:
                                 case 0x0B:
                                 case 0x0C:
-                                        bufptr += 3;
-                                        break;
-
-                                case 0x09:
-                                case 0x0A:
-                                        bufptr += 2;
+                                        bufptr += 1;
                                         break;
                                 }
                         }
@@ -645,7 +641,7 @@ static int cterm_process_characteristics(char *buf, int len)
                                 case 0x06:
                                 case 0x07:
                                 case 0x08:
-                                        bufptr += 3;
+                                        bufptr += 1;
                                         break;
 
                                 case 0x02:
@@ -658,18 +654,17 @@ static int cterm_process_characteristics(char *buf, int len)
                                 case 0x0F:
                                 case 0x10:
                                 case 0x11:
-                                        bufptr += 4;
+                                        bufptr += 2;
                                         break;
 
                                 case 0x03:
-                                        bufptr += buf[2] + 3;
+                                        bufptr += buf[0] + 1;
                                         break;
                                 }
                         }
                         continue;
                 }
                 selector &= 0xFF;
-                bufptr += 2;                    /* Point to selector value */
                 switch(selector)
                 {
                 case 0x01:
