@@ -115,12 +115,14 @@ int ProcessConfigurationMessage(void)
            *            B. Command file submission (by FOP)
            *            C. Segmented messages
            */
-          remLinuxVMS = 1;
-          if ((bufsz != 0xFFFF) &&
-              DAPexGetBit(syscap, DAP_SYSCP_REL) &&
-              DAPexGetBit(syscap, DAP_SYSCP_CMDFILE) &&
-              DAPexGetBit(syscap, DAP_SYSCP_SEGMENTED))
-            remLinuxVMS = 0;
+          if (remOS == DAP_OS_VAXVMS) {
+            remLinuxVMS = 1;
+            if ((bufsz != 0xFFFF) &&
+                DAPexGetBit(syscap, DAP_SYSCP_REL) &&
+                DAPexGetBit(syscap, DAP_SYSCP_CMDFILE) &&
+                DAPexGetBit(syscap, DAP_SYSCP_SEGMENTED))
+              remLinuxVMS = 0;
+          }
           
           /*
            * Create and send our configuration message.
