@@ -106,7 +106,13 @@ void OpenFile(
 
         DAPexInit(buf, 6);
         DAPexSetBit(buf, DAP_ATTR_DATATYPE);
-        DAPexSetBit(buf, DAP_ATTR_RFM);
+        if (DAPexGetBit(remDATATYPE, DAP_DATATYPE_ASCII))
+          DAPexSetBit(buf, DAP_ATTR_RFM);
+        if (DAPexGetBit(remDATATYPE, DAP_DATATYPE_IMAGE))
+          DAPexSetBit(buf, DAP_ATTR_MRS);
+        DAPexSetBit(buf, DAP_ATTR_ALQ);
+        DAPexSetBit(buf, DAP_ATTR_EBK);
+        DAPexSetBit(buf, DAP_ATTR_FFB);
         DAPexDone(buf);
 
         DAPexInit(buf, 2);
@@ -124,6 +130,20 @@ void OpenFile(
           DAPbPut(buf, DAP_RFM_STM);
           remRFM = DAP_RFM_STM;
         }
+
+        /*
+         * Return the maximum possible record size based on the available
+         * buffer size.
+         */
+        if (DAPexGetBit(remDATATYPE, DAP_DATATYPE_IMAGE))
+          DAP2bPut(buf, 512);
+
+        /*
+         * Fill in infomation about the file size, allocation etc
+         */
+        DAPint2i(buf, 5, statbuf.st_blocks);
+        DAPint2i(buf, 5, (statbuf.st_size + 511) / 512);
+        DAP2bPut(buf, statbuf.st_size % 512);
         DAPwrite(buf);
       }
 
@@ -284,9 +304,21 @@ int GetFileData(void)
           } else eof = 1;
           break;
 
+        case DAP_RFM_FIX:
+          /*
+           * For fixed length records, we'll send one disk block (512 bytes)
+           * in each Data message, padded if necessary with NULLs.
+           */
+          if ((readlen = fread(dbuf, sizeof(uint8_t), 512, fp)) != 0) {
+            if (readlen != 512)
+              memset(&dbuf[readlen], 0, 512 - readlen);
+            readlen = 512;
+          } else eof = 1;
+          break;
+          
         default:
           /*
-           * For fixed length records, we'll send as much data as will fit in
+           * For all other formats, we'll send as much data as will fit in
            * each Data message.
            */
           if ((readlen = fread(dbuf, sizeof(uint8_t), dataSize, fp)) == 0)

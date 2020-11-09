@@ -84,7 +84,7 @@ static void sendAttributes(
         DAPbPut(buf, DAP_RFM_STM);
         DAPint2i(buf, 5, statbuf.st_blocks);
         DAPint2i(buf, 5, (statbuf.st_size + 511) / 512);
-        DAP2bPut(buf, 512 - (statbuf.st_size % 512));
+        DAP2bPut(buf, statbuf.st_size % 512);
         DAPwrite(buf);
       }
       
