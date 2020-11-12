@@ -408,7 +408,8 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
 
                         dn->blksize  = le16_to_cpu(msg->blksize);
                         dn->priority = msg->priority;
-
+                        memcpy(dn->macaddr, eth_hdr(skb)->h_source, ETH_ALEN);
+                        
                         dn->flags &= ~DN_NDFLAG_P3;
 
                         switch (msg->iinfo & DN_RT_INFO_TYPE) {

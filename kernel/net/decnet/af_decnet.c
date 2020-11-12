@@ -1133,7 +1133,7 @@ static int dn_accept(struct socket *sock, struct socket *newsock, int flags,
         }
 
         cb = DN_SKB_CB(skb);
-        sk->sk_ack_backlog--;
+        sk_acceptq_removed(sk);
         newsk = dn_alloc_sock(sock_net(sk), newsock, sk->sk_allocation, kern);
         if (newsk == NULL) {
                 release_sock(sk);
@@ -2213,14 +2213,11 @@ static struct sock *dn_socket_get_next(struct seq_file *seq,
         struct dn_iter_state *state = seq->private;
 
         n = sk_next(n);
-try_again:
-        if (n)
-                goto out;
-        if (++state->bucket >= DN_SK_HASH_SIZE)
-                goto out;
-        n = sk_head(&dn_sk_hash[state->bucket]);
-        goto try_again;
-out:
+        while (!n) {
+                if (++state->bucket >= DN_SK_HASH_SIZE)
+                        break;
+                n = sk_head(&dn_sk_hash[state->bucket]);
+        }
         return n;
 }
 

@@ -106,9 +106,11 @@ struct dn_rt_hash_bucket
         spinlock_t lock;
 };
 
-extern struct neigh_table dn_neigh_table;
-
+#ifndef CONFIG_DECNET_ROUTER
 int dn_IVprime = 0;
+#endif
+
+extern struct neigh_table dn_neigh_table;
 
 static unsigned char dn_hiord_addr[6] = {0xAA,0x00,0x04,0x00,0x00,0x00};
 
@@ -505,6 +507,8 @@ static int dn_return_long(struct sk_buff *skb)
 
 /**
  * dn_route_rx_packet - Try and find a route for an incoming packet
+ * @net: The applicable net namespace
+ * @sk: Socket packet transmitted on
  * @skb: The packet to find a route for
  *
  * Returns: result of input function if route is found, error code otherwise
@@ -573,6 +577,20 @@ static int dn_route_rx_long(struct sk_buff *skb)
         ptr++;
         cb->hops = *ptr++; /* Visit Count */
 
+#ifndef CONFIG_DECNET_ROUTER
+        /*
+         * If we are a Phase IV prime node, this long (ethernet) packet
+         * was sent to the "Unknown Destination" multicast address and is
+         * not addressed to this not, we should just drop it as soon as
+         * possible.
+         */
+        if (dn_IVprime) {
+                if (dn_dev_unknown_mcast(skb))
+                        if (cb->dst != decnet_address)
+                                goto drop_it;
+        }
+#endif
+        
         return NF_HOOK(NFPROTO_DECNET, NF_DN_PRE_ROUTING,
                        &init_net, NULL, skb, skb->dev, NULL,
                        dn_route_rx_packet);
@@ -684,7 +702,7 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
         if (decnet_debug_level & DN_DBG_RX_ROUTE)
                 printk(KERN_DEBUG
                         "dn_route_rcv: got 0x%02x from %s [%d %d %d]\n",
-                        (int)flags, (dev) ? dev->name : "???", len, skb->len,
+                        (int)flags, dev->name, len, skb->len,
                         padlen);
 
         if (flags & DN_RT_PKT_CNTL) {
@@ -718,9 +736,10 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
                                        &init_net, NULL, skb, skb->dev, NULL,
                                        dn_route_discard);
                 case DN_RT_PKT_ERTH:
+#ifndef CONFIG_DECNET_ROUTER
                         if (dn_IVprime && ((flags & DN_RT_PKT_IVP) == 0))
                                 goto dump_it;
-
+#endif
                         if (!dn_dev_valid_mcast(skb))
                                 goto dump_it;
 

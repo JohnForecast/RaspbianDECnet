@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 #ifndef _NET_DN_NEIGH_H
 #define _NET_DN_NEIGH_H
+#include <linux/if_ether.h>
 
 /*
  * The position of the first two fields of
@@ -16,6 +17,7 @@ struct dn_neigh {
 #define DN_NDFLAG_P3    0x0004 /* Phase III Node */
         unsigned long blksize;
         __u8 priority;
+        char macaddr[ETH_ALEN];
 };
 #define DN_ADDR(dn)     (*(__le16 *)((dn)->n.primary_key))
 

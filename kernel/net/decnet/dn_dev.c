@@ -73,11 +73,13 @@ static unsigned char dn_eco_version[3]    = {0x02,0x00,0x00};
  * The following multicast addresses are defined for Phase IV Prime
  */
 static char dn_rt_all_rtp_mcast[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0A};
-#if 0
 static char dn_rt_unknown_dest[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0B};
+
+#ifndef CONFIG_DeCNET_ROUTER
+extern int dn_IVprime;
 #endif
 
-extern int dn_IVprime;
+char *dn_ifname = NULL;
 
 extern struct neigh_table dn_neigh_table;
 
@@ -176,8 +178,13 @@ static int max_t3[] = { 8191 }; /* Must fit in 16 bits when multiplied by BCT3MU
 static int min_priority[1];
 static int max_priority[] = { 127 }; /* From DECnet spec */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+static int dn_forwarding_proc(struct ctl_table *, int,
+                        void *, size_t *, loff_t *);
+#else
 static int dn_forwarding_proc(struct ctl_table *, int,
                         void __user *, size_t *, loff_t *);
+#endif
 static struct dn_dev_sysctl_table {
         struct ctl_table_header *sysctl_header;
         struct ctl_table dn_dev_vars[5];
@@ -260,9 +267,14 @@ static void dn_dev_sysctl_unregister(struct dn_dev_parms *parms)
         }
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+static int dn_forwarding_proc(struct ctl_table *table, int write,
+                                void *buffer, size_t *lenp, loff_t *ppos)
+#else
 static int dn_forwarding_proc(struct ctl_table *table, int write,
                                 void __user *buffer,
                                 size_t *lenp, loff_t *ppos)
+#endif
 {
 #ifdef CONFIG_DECNET_ROUTER
         struct net_device *dev = table->extra1;
@@ -479,7 +491,9 @@ int dn_dev_ioctl(unsigned int cmd, void __user *arg)
         switch (cmd) {
         case SIOCGIFADDR:
                 *((__le16 *)sdn->sdn_nodeaddr) = ifa->ifa_local;
-                goto rarok;
+                if (copy_to_user(arg, ifr, DN_IFREQ_SIZE))
+                        ret = -EFAULT;
+                break;
 
         case SIOCSIFADDR:
                 if (!ifa) {
@@ -502,10 +516,6 @@ done:
         rtnl_unlock();
 
         return ret;
-rarok:
-        if (copy_to_user(arg, ifr, DN_IFREQ_SIZE))
-                ret = -EFAULT;
-        goto done;
 }
 
 struct net_device *dn_dev_get_default(void)
@@ -865,7 +875,11 @@ static void dn_send_endnode_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 
         msg = skb_put(skb, sizeof(*msg));
 
+#ifdef CONFIG_DECNET_ROUTER
+        msg->msgflg = DN_RT_PKT_EEDH;
+#else
         msg->msgflg  = dn_IVprime ? DN_RT_PKT_EEDHP : DN_RT_PKT_EEDH;
+#endif
         memcpy(msg->tiver, dn_eco_version, 3);
         dn_dn2eth(msg->id, ifa->ifa_local);
         msg->iinfo   = DN_RT_INFO_ENDN;
@@ -889,9 +903,13 @@ static void dn_send_endnode_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 
         skb_reset_network_header(skb);
 
+#ifdef CONFIG_DECNET_ROUTER
+        dn_rt_finish_output(skb, dn_rt_all_rt_mcast, msg->id);
+#else
         dn_rt_finish_output(skb,
                             dn_IVprime ? dn_rt_all_rtp_mcast : dn_rt_all_rt_mcast,
                             msg->id);
+#endif
 }
 
 
@@ -1035,9 +1053,13 @@ static int dn_eth_up(struct net_device *dev)
 {
         struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
 
-        if (dn_db->parms.forwarding == 0)
+        if (dn_db->parms.forwarding == 0) {
                 dev_mc_add(dev, dn_rt_all_end_mcast);
-        else
+#ifndef CONFIG_DECNET_ROUTER
+                if (dn_IVprime)
+                        dev_mc_add(dev, dn_rt_unknown_dest);
+#endif
+        } else
                 dev_mc_add(dev, dn_rt_all_rt_mcast);
 
         dn_db->use_long = 1;
@@ -1049,10 +1071,17 @@ static void dn_eth_down(struct net_device *dev)
 {
         struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
 
-        if (dn_db->parms.forwarding == 0)
+        if (dn_db->parms.forwarding == 0) {
                 dev_mc_del(dev, dn_rt_all_end_mcast);
-        else
+#ifndef CONFIG_DECNET_ROUTER
+                dev_mc_del(dev, dn_rt_unknown_dest);
+#endif
+        } else
                 dev_mc_del(dev, dn_rt_all_rt_mcast);
+
+#ifndef CONFIG_DECNET_ROUTER
+        dn_IVprime = 0;
+#endif
 }
 
 static void dn_dev_set_timer3(struct net_device *dev);
@@ -1142,6 +1171,16 @@ int dn_dev_valid_mcast(struct sk_buff *skb)
         return 1;
 }
 
+int dn_dev_unknown_mcast(struct sk_buff *skb)
+{
+        struct net_device *dev = skb->dev;
+
+        if (dev->type == ARPHRD_ETHER)
+                return memcmp(eth_hdr(skb)->h_dest,
+                              dn_rt_unknown_dest, ETH_ALEN) == 0;
+        return 1;
+}
+
 static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
 {
         int i;
@@ -1162,11 +1201,19 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
          * device has a DECnet-style MAC address. This is to avoid seeing
          * multicast traffic multiple times if there are more than 1
          * ethernet-type adapter attached to the same network.
+         *
+         * If the device name is passed in when loading  the DECnet module,
+         * we only allow that particular device to be initialized.
          */
         *err = -EPROTONOSUPPORT;
         if (dev->type == ARPHRD_ETHER) {
-                if (memcmp(dev->dev_addr, dn_hiord, 4) != 0)
-                        return NULL;
+                if (dn_ifname != NULL) {
+                        if (strcmp(dn_ifname, dev->name) != 0)
+                                return NULL;
+                } else {
+                        if (memcmp(dev->dev_addr, dn_hiord, 4) != 0)
+                                return NULL;
+                }
         }
 
         *err = -ENOBUFS;
@@ -1211,6 +1258,19 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
                 dn_dev_set_timer4(dev);
         }
         *err = 0;
+
+#ifndef CONFIG_DECNET_ROUTER
+        /*
+         * If we specified a particular interface and it does not have
+         * a DECnet-style MAC address, enable Phase IV Prime operation.
+         */
+        if (dn_ifname != NULL)
+                if (memcmp(dev->dev_addr, dn_hiord, 4) != 0) {
+                        dn_IVprime = 1;
+                        printk("Enabling Phase IV Prime operaion on %s\n",
+                               dn_ifname);
+                }
+#endif
         return dn_db;
 }
 
@@ -1475,9 +1535,8 @@ static int addr[2], count = 0;
 module_param_array(addr, int, &count, 0444);
 MODULE_PARM_DESC(addr, "The DECnet address of this machine: area,node");
 
-static char *ifname = "";
-module_param(ifname, charp, 0444);
-MODULE_PARM_DESC(ifname, "The network interface to use for DECnet");
+module_param(dn_ifname, charp, 0444);
+MODULE_PARM_DESC(dn_ifname, "The network interface to use for DECnet");
 
 void __init dn_dev_init(void)
 {
@@ -1532,5 +1591,7 @@ void __exit dn_dev_cleanup(void)
 
         remove_proc_entry("decnet_dev", init_net.proc_net);
 
+        dn_rt_cache_flush(0);
+        
         dn_dev_devices_off();
 }
