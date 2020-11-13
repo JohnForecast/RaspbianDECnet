@@ -596,14 +596,6 @@ int dn_destroy_timer(struct sock *sk)
                 if (scp->nsp_rxtshift >= decnet_dr_count)
                         scp->state = DN_DRC;
                 return 0;
-
-        case DN_DN:
-                if (scp->nsp_rxtshift < decnet_dn_count) {
-                        /* printk(KERN_DEBUG "dn_destroy_timer: DN\n"); */
-                        dn_nsp_send_disc(sk, NSP_DISCCONF, NSP_REASON_DC,
-                                         GFP_ATOMIC);
-                        return 0;
-                }
         }
 
         scp->persist = (HZ * decnet_time_wait);

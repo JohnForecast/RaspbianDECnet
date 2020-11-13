@@ -33,7 +33,6 @@
 
 int decnet_debug_level;
 int decnet_time_wait = 30;
-int decnet_dn_count = 1;
 int decnet_di_count = 3;
 int decnet_dr_count = 3;
 int decnet_log_martians = 1;
@@ -302,15 +301,6 @@ static struct ctl_table dn_table[] = {
                 .proc_handler = proc_dointvec_minmax,
                 .extra1 = &min_decnet_time_wait,
                 .extra2 = &max_decnet_time_wait
-        },
-        {
-                .procname = "dn_count",
-                .data = &decnet_dn_count,
-                .maxlen = sizeof(int),
-                .mode = 0644,
-                .proc_handler = proc_dointvec_minmax,
-                .extra1 = &min_state_count,
-                .extra2 = &max_state_count
         },
         {
                 .procname = "di_count",
