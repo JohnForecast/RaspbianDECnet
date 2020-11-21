@@ -501,7 +501,8 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         sk->sk_allocation  = gfp;
         sk->sk_sndbuf      = sysctl_decnet_wmem[1];
         sk->sk_rcvbuf      = sysctl_decnet_rmem[1];
-
+        sk->sk_dst_cache   = NULL;
+        
         /* Initialization of DECnet Session Control Port                */
         scp = DN_SK(sk);
         scp->state      = DN_O;         /* Open                 */
@@ -2409,7 +2410,7 @@ MODULE_LICENSE("GPL");
 MODULE_ALIAS_NETPROTO(PF_DECnet);
 
 static const char banner[] __initconst = KERN_INFO
-"NET4: DECnet for Linux: V.2.6.03a (C) 1995-2003 Linux DECnet Project Team\n";
+"NET4: DECnet for Linux: V.2.6.03b (C) 1995-2003 Linux DECnet Project Team\n";
 
 static int __init decnet_init(void)
 {

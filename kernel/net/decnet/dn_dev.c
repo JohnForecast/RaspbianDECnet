@@ -1074,7 +1074,8 @@ static void dn_eth_down(struct net_device *dev)
         if (dn_db->parms.forwarding == 0) {
                 dev_mc_del(dev, dn_rt_all_end_mcast);
 #ifndef CONFIG_DECNET_ROUTER
-                dev_mc_del(dev, dn_rt_unknown_dest);
+                if (dn_IVprime)
+                        dev_mc_del(dev, dn_rt_unknown_dest);
 #endif
         } else
                 dev_mc_del(dev, dn_rt_all_rt_mcast);
@@ -1508,7 +1509,7 @@ static int dn_dev_seq_show(struct seq_file *seq, void *v)
                 struct dn_dev *dn_db = rcu_dereference(dev->dn_ptr);
 
                 seq_printf(seq, "%-8s %1s     %04u %04u   %04lu %04lu   %04lu %04lu"
-                                "   %04hu    %03d %02x    %-10s %-7s %-7s\n",
+                                "   %-5hu   %03d %02x    %-10s %-7s %-7s\n",
                                 dev->name ? dev->name : "???",
                                 dn_type2asc(dn_db->parms.mode),
                                 0, 0,
