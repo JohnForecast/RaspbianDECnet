@@ -200,6 +200,14 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    11/21/2020
+    
+   1. Fix reference count bug in regard to network devices. This only happened in 5.5 and later and would cause a system shutdown
+      to hang. The code now runs correctly in the experimental 5.9 and 5.10 kernels for Raspberry Pi.
+      
+   2. Fixed a number of bugs found by Paul Koning.
+   
+   
     10/24/2020
     
    1. Conditional code changes to allow the use of kernel 5.8 and 5.9.
