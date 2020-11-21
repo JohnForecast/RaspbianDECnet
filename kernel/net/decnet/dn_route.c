@@ -1472,7 +1472,7 @@ static int dn_route_input_slow(struct sk_buff *skb)
                 /* Use the default router if there is one */
                 neigh = neigh_clone(dn_db->router);
                 if (neigh) {
-                  gateway = DN_ADDR((struct dn_neigh *)neigh);
+                        gateway = DN_ADDR((struct dn_neigh *)neigh);
                         goto make_route;
                 }
 
@@ -1517,6 +1517,7 @@ make_route:
                 rt->dst.output = dn_output;
                 rt->dst.input = dn_nsp_rx;
                 rt->dst.dev = in_dev;
+                dev_hold(in_dev);
                 flags |= RTCF_LOCAL;
                 break;
         default:
