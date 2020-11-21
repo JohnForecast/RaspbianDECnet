@@ -599,12 +599,17 @@ int dn_destroy_timer(struct sock *sk)
                 return 0;
         }
 
-        scp->persist = (HZ * decnet_time_wait);
+        /*
+         * Give the underlying stack a couple of seconds to send out the
+         * disconnect initiate/confirm before dropping the connection
+         * entirely.
+         */
+        scp->persist = HZ;
 
         if (sk->sk_socket)
                 return 0;
 
-        if (time_after_eq(jiffies, scp->stamp + HZ * decnet_time_wait)) {
+        if (time_after_eq(jiffies, scp->stamp + HZ * 2)) {
                 dn_unhash_sock(sk);
                 sock_put(sk);
                 return 1;

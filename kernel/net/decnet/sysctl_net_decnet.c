@@ -32,7 +32,6 @@
 
 
 int decnet_debug_level;
-int decnet_time_wait = 30;
 int decnet_di_count = 3;
 int decnet_dr_count = 3;
 int decnet_log_martians = 1;
@@ -47,8 +46,6 @@ int sysctl_decnet_rmem[3] = { 4 * 1024, 87380, 87380 * 2 };
 
 #ifdef CONFIG_SYSCTL
 extern int decnet_dst_gc_interval;
-static int min_decnet_time_wait[] = { 5 };
-static int max_decnet_time_wait[] = { 600 };
 static int min_state_count[] = { 1 };
 static int max_state_count[] = { NSP_MAXRXTSHIFT };
 static int min_decnet_dst_gc_interval[] = { 1 };
@@ -292,15 +289,6 @@ static struct ctl_table dn_table[] = {
                 .maxlen = 16,
                 .mode = 0644,
                 .proc_handler = dn_def_dev_handler,
-        },
-        {
-                .procname = "time_wait",
-                .data = &decnet_time_wait,
-                .maxlen = sizeof(int),
-                .mode = 0644,
-                .proc_handler = proc_dointvec_minmax,
-                .extra1 = &min_decnet_time_wait,
-                .extra2 = &max_decnet_time_wait
         },
         {
                 .procname = "di_count",
