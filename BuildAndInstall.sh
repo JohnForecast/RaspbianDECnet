@@ -86,12 +86,6 @@ Interface=
 
 BranchSw=
 
-#*** Temporary fix while 64-bit piOS is in beta
-if [ "$Arch" = "aarch64" ]; then
-    BranchSw="--branch=rpi-5.4.y"
-fi
-#***
-
 #
 # Useful functions
 #
