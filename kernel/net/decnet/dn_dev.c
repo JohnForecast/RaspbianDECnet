@@ -687,7 +687,11 @@ static int dn_nl_newaddr(struct sk_buff *skb, struct nlmsghdr *nlh,
         ifa->ifa_dev = dn_db;
 
         if (tb[IFA_LABEL])
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,11,0)
                 nla_strlcpy(ifa->ifa_label, tb[IFA_LABEL], IFNAMSIZ);
+#else
+                nla_strscpy(ifa->ifa_label, tb[IFA_LABEL], IFNAMSIZ);
+#endif
         else
                 memcpy(ifa->ifa_label, dev->name, IFNAMSIZ);
 
