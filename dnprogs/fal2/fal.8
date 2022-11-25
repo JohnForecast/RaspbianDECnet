@@ -15,14 +15,18 @@ Options:
 is a daemon that serves incoming DAP (Data Access protocol) connections from
 remote systems. It provides sequential transfer and directory listing from
 remote machines using standard DECnet syntax.
-It should be started at system boot time (after DECnet has been started) and
-must be run as root. Note that this version of
+It may be started at system boot time (after DECnet has been started) running as root
+or started on demand by dnetd. Note that this version of
 .B fal
 does not support decnet.proxy.
 .br
+.br
 The file names output by
 .B fal
-will always be Unix-style.
+will always be Unix-style and all files sent by
+.B fal
+will be sent in STREAMLF format.
+.br
 .br
 The options below affect the behaviour of fal. If you are using
 .B dnetd
@@ -30,7 +34,6 @@ then these options should be specified in the
 .B dnetd.conf(5)
 file.
 .br
-By default all files sent by fal will be sent in STREAMLF format.
 .SH OPTIONS
 .TP
 .I "\-d"
