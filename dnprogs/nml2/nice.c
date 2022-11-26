@@ -297,6 +297,16 @@ void NICEacceptedResponse(void)
 }
 
 /*
+ * Generate a "Partial" response
+ */
+void NICEpartialResponse(void)
+{
+  char partial = NICE_RET_PARTIAL;
+
+  write(sock, &partial, sizeof(partial));
+}
+
+/*
  * Generate a "Success" response in the outbound buffer
  */
 void NICEsuccessResponse(void)
