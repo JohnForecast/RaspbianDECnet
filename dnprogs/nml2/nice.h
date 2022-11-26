@@ -743,6 +743,7 @@ extern void NICEunsupportedResponse(void);
 extern void NICEtoolongResponse(void);
 extern void NICEunrecognizedComponentResponse(char);
 extern void NICEacceptedResponse(void);
+extern void NICEpartialResponse(void);
 extern void NICEsuccessResponse(void);
 extern void NICEdoneResponse(void);
 extern int NICEread(void);
