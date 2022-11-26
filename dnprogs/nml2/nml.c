@@ -506,6 +506,8 @@ static void read_node_multi(
 
   build_node_table(subset);
 
+  NICEpartialResponse();
+  
   /*
    * For KNOWN nodes we include the executor
    */
