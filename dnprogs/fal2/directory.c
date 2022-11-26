@@ -31,7 +31,7 @@
 
 extern int verbosity;
 
-extern uint8_t remOS, remFS, remLen, remLinuxVMS;
+extern uint8_t remOS, remFS, remLen;
 
 /*
  * Create a protection image field in the buffer
@@ -274,7 +274,7 @@ void ListDirectory(
     for (i = 0; i < gl.gl_pathc; i++) {
       DAPsendName(DAP_NAME_TYPE_FILENAME, gl.gl_pathv[i]);
       sendAttributes(basedir, gl.gl_pathv[i], display);
-      if ((remOS == DAP_OS_TOPS10) || remLinuxVMS)
+      if (remOS == DAP_OS_TOPS10)
         DAPsendAcknowledge();
     }
   }
