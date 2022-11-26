@@ -326,9 +326,24 @@ int main(int argc, char *argv[])
             {
                 case dap_message::NAME:
                 {
-
                     dap_name_message *nm = (dap_name_message *)m;
 
+                    if (name_pending)
+                    {
+                        name_pending = false;
+                        
+                        if (show_total) total += size;
+                        print_short(filename_width,
+                                    show_size,
+                                    show_date,
+                                    show_owner,
+                                    show_protection,
+                                    single_column,
+                                    entries_per_line,
+                                    size,
+                                    name, owner, cdt,prot, &printed);
+                    }
+                    
                     if (nm->get_nametype() == dap_name_message::VOLUME &&
                         show_header)
                     {
