@@ -51,7 +51,7 @@ static struct links {
 } links[MAX_ACTIVE_NODES];
 static uint16_t num_nodes = 0, num_links = 0;
 
-#define MAX_NODES               2048
+#define MAX_NODES               65536
 uint16_t knownaddr[MAX_NODES + 1];
 uint16_t nodecount;
 
