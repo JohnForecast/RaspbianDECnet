@@ -797,7 +797,7 @@ static int dn_output(struct net *net, struct sock *sk, struct sk_buff *skb)
          * originated on this node. Only valid flag from upper layers
          * is return-to-sender-requested. Set hop count to 0 too.
          */
-        cb->rt_flags &= ~DN_RT_F_RQR;
+        cb->rt_flags &= DN_RT_F_RQR;
         cb->rt_flags |= DN_RT_F_IE;
         cb->hops = 0;
 
