@@ -255,14 +255,15 @@ if [ -d ./linux ]; then
         echo "Do you want to:"
         echo "  1 - Delete existing tree, download a new one and build"
         echo "  2 - Clean and rebuild using the existing tree"
-        echo "  3 - Install the kernel/modules/dtbs already built in the existing tree"
-        echo "  4 - Don't bother to build or install the kernel/modules/dtbs"
+	echo "  3 - Rebuild using the existing tree"
+        echo "  4 - Install the kernel/modules/dtbs already built in the existing tree"
+        echo "  5 - Don't bother to build or install the kernel/modules/dtbs"
         echo
-        read -p "Enter code (1 - 4): " LinuxDownload Junk
+        read -p "Enter code (1 - 5): " LinuxDownload Junk
 
         if [ "$Junk" = "" ]; then
             case $LinuxDownload in
-                1|2|3|4)
+                1|2|3|4|5)
                     break
                     ;;
             esac
@@ -279,14 +280,15 @@ if [ -d ./RaspbianDECnet ]; then
         echo "Do you want to:"
         echo "  1 - Delete existing tree, download a new one and build"
         echo "  2 - Clean and rebuild using the existing tree"
-        echo "  3 - Install the DECnet utilties already built in the existing tree"
-        echo "  4 - Don't bother to build or install the DECnet utilities"
+	echo "  3 - Rebuild using the existing tree"
+        echo "  4 - Install the DECnet utilties already built in the existing tree"
+        echo "  5 - Don't bother to build or install the DECnet utilities"
         echo
-        read -p "Enter code (1 - 4): " DECnetDownload Junk
+        read -p "Enter code (1 - 5): " DECnetDownload Junk
 
         if [ "$Junk" = "" ]; then
             case $DECnetDownload in
-                1|2|3|4)
+                1|2|3|4|5)
                     break
                     ;;
             esac
@@ -409,7 +411,7 @@ fi
 
 echo
 echo "All questions have been answered"
-if [ $LinuxDownload -ne 4 -a $DECnetDownload -ne 4 ]; then
+if [ $LinuxDownload -ne 5 -a $DECnetDownload -ne 5 ]; then
     echo "The download/build log will be in $Log"
 fi
 
@@ -453,7 +455,7 @@ if [ $DECnetDownload -eq 1 ]; then
     fi
 fi
 
-if [ $LinuxDownload -le 2 ]; then
+if [ $LinuxDownload -le 3 ]; then
     DOCMD "cd $Here"
 
     DOCMD "$CP ./RaspbianDECnet/kernel/include/net/*.h ./linux/include/net"
@@ -461,7 +463,9 @@ if [ $LinuxDownload -le 2 ]; then
     DOCMD "$CP -r ./RaspbianDECnet/kernel/net/decnet ./linux/net"
 
     DOCMD "cd $Here/linux"
-    DOCMD "$MAKE clean"
+    if [ $LinuxDownload -le 2 ]; then
+	DOCMD "$MAKE clean"
+    fi
     DOCMD "$MAKE $CPUSw $ArchSw $Kernel modules dtbs"
     if [ $? -ne 0 ]; then
         echo "Kernel make failed"
@@ -469,9 +473,11 @@ if [ $LinuxDownload -le 2 ]; then
     fi
 fi
 
-if [ $DECnetDownload -le 2 ]; then
+if [ $DECnetDownload -le 3 ]; then
     DOCMD "cd $Here/RaspbianDECnet/dnprogs"
-    DOCMD "$MAKE clean"
+    if [ $DECnetDownload -le 2 ]; then
+	DOCMD "$MAKE clean"
+    fi
     DOCMD "$MAKE $CPUSw all"
     if [ $? -ne 0 ]; then
         echo "DECnet Utilities make failed"
@@ -502,7 +508,7 @@ case $PostBuild in
      ;;
 esac
 
-if [ $LinuxDownload -le 3 ]; then
+if [ $LinuxDownload -le 4 ]; then
     DOCMD "cd $Here/linux"
     DOCMD "$SUDO $MAKE modules_install"
     if [ $? -ne 0 ]; then
@@ -521,7 +527,7 @@ if [ $LinuxDownload -le 3 ]; then
     DOCMD "$SUDO $CP arch/$ArchDir/boot/$Kernel /boot/$BootKernel.img"
 fi
 
-if [ $DECnetDownload -le 3 ]; then
+if [ $DECnetDownload -le 4 ]; then
     DOCMD "cd $Here/RaspbianDECnet/dnprogs"
     DOCMD "$SUDO $MAKE install"
     if [ $? -ne 0 ]; then
@@ -564,6 +570,6 @@ echo "Kernel and/or DECnet Utilities successfully installed"
 echo
 echo "You may still need to decide how to start up DECnet - see section 6 of"
 echo "README.Raspbian in $Here/RaspbianDECnet"
-echo "A reboot is required to change the MAC address of $Interface and"
-echo "clear out any currently loaded DECnet module"
+echo "A reboot is required to change MAC addresses and clear out any"
+echo "currently loaded DECnet module"
 echo
