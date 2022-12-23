@@ -418,6 +418,50 @@ struct sock *dn_sklist_find_listener(struct sockaddr_dn *addr)
         return sk;
 }
 
+int dn_check_duplicate_conn(struct sk_buff *skb)
+{
+	struct dn_skb_cb *cb = DN_SKB_CB(skb);
+	struct sock *sk;
+	struct dn_scp *scp;
+	int found = 0;
+
+	read_lock(&dn_hash_lock);
+	sk_for_each(sk, &dn_sk_hash[le16_to_cpu(cb->dst_port) & DN_SK_HASH_MASK]) {
+		if (sk->sk_state != TCP_LISTEN) {
+			scp = DN_SK(sk);
+			if (cb->src != dn_saddr2dn(&scp->peer))
+				continue;
+			if (cb->src_port != scp->addrrem)
+				continue;
+			found = 1;
+			break;
+		}
+	}
+	read_unlock(&dn_hash_lock);
+	return found;
+}
+
+struct sock *dn_check_returned_conn(struct sk_buff *skb)
+{
+	struct dn_skb_cb *cb = DN_SKB_CB(skb);
+	struct sock *sk;
+	struct dn_scp *scp;
+
+	read_lock(&dn_hash_lock);
+	sk_for_each(sk, &dn_sk_hash[le16_to_cpu(cb->src_port) & DN_SK_HASH_MASK]) {
+		if (sk->sk_state != TCP_LISTEN) {
+			scp = DN_SK(sk);
+			if (cb->src_port != scp->addrloc)
+				continue;
+			sock_hold(sk);
+			read_unlock(&dn_hash_lock);
+			return sk;
+		}
+	}
+	read_unlock(&dn_hash_lock);
+	return NULL;
+}
+
 struct sock *dn_find_by_skb(struct sk_buff *skb)
 {
         struct dn_skb_cb *cb = DN_SKB_CB(skb);
@@ -544,6 +588,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         skb_queue_head_init(&scp->other_receive_queue);
 
         scp->persist = 0;
+	scp->persist_count = 0;
         scp->persist_fxn = NULL;
         scp->keepalive = 10 * HZ;
         scp->keepalive_fxn = dn_keepalive;
@@ -846,6 +891,10 @@ static int dn_confirm_accept(struct sock *sk, long *timeo, gfp_t allocation)
         scp->segsize_loc = dst_metric_advmss(__sk_dst_get(sk));
         dn_send_conn_conf(sk, allocation);
 
+        scp->persist = NSP_CC_DELAY;
+	scp->persist_count = NSP_CC_RETRANS;
+        scp->persist_fxn = dn_nsp_retrans_conn_conf;
+
         prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
         for(;;) {
                 release_sock(sk);
@@ -996,6 +1045,11 @@ static int __dn_connect(struct sock *sk, struct sockaddr_dn *addr, int addrlen, 
         scp->segsize_loc = dst_metric_advmss(dst);
 
         dn_nsp_send_conninit(sk, NSP_CI);
+
+        scp->persist = NSP_CI_DELAY;
+	scp->persist_count = NSP_CI_RETRANS;
+        scp->persist_fxn = dn_nsp_retrans_conninit;
+
         err = -EINPROGRESS;
         if (*timeo) {
                 err = dn_wait_run(sk, timeo);

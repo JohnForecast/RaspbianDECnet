@@ -216,7 +216,8 @@ static struct {
  { 0,             "CI: Truncated at menuver" },
  { 0,             "CI: Truncated before access or user data" },
  { NSP_REASON_IO, "CI: Access data format error" },
- { NSP_REASON_IO, "CI: User data format error" }
+ { NSP_REASON_IO, "CI: User data format error" },
+ { NSP_REASON_OK, "CI/RCI: Duplicate or returned to sender" }
 };
 
 /*
@@ -232,6 +233,7 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
         struct nsp_conn_init_msg *msg = (struct nsp_conn_init_msg *)skb->data;
         struct sockaddr_dn dstaddr;
         struct sockaddr_dn srcaddr;
+	struct sock *sk;
         unsigned char type = 0;
         int dstlen;
         int srclen;
@@ -322,8 +324,29 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
                         goto err_out;
         }
 
+	/*
+	 * 7. Check if a socket with this address already exists. This can occur
+	 * undef 2 circumstances:
+	 *
+	 * On transmitting end:
+	 *	if this is packet is a CI/RCI being returned to sender
+	 *
+	 * On receiving end:
+	 *	if this is a CI/RCI which should be ignored
+	 */
+	err++;
+	if (cb->rt_flags & DN_RT_F_RTS) {
+		if ((sk = dn_check_returned_conn(skb)) != NULL)
+			return sk;
+		sock_put(sk);
+		goto err_out;
+	}
+
+	if (dn_check_duplicate_conn(skb))
+		goto err_out;
+
         /*
-         * 7. Look up socket based on destination end username
+         * 8. Look up socket based on destination end username
          */
         return dn_sklist_find_listener(&dstaddr);
 err_out:
@@ -701,6 +724,7 @@ static void dn_returned_conn_init(struct sock *sk, struct sk_buff *skb)
         if (scp->state == DN_CI) {
                 scp->state = DN_NC;
                 sk->sk_state = TCP_CLOSE;
+		sk->sk_err = EHOSTUNREACH;
                 if (!sock_flag(sk, SOCK_DEAD))
                         sk->sk_state_change(sk);
         }
@@ -767,8 +791,6 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
                         goto free_out;
                 case 0x10:
                 case 0x60:
-                        if (unlikely(cb->rt_flags & DN_RT_F_RTS))
-                                goto free_out;
                         sk = dn_find_listener(skb, &reason);
                         goto got_it;
                 }
@@ -861,7 +883,7 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
         struct dn_skb_cb *cb = DN_SKB_CB(skb);
 
         if (cb->rt_flags & DN_RT_F_RTS) {
-                if (cb->nsp_flags == 0x18 || cb->nsp_flags == 0x68)
+                if (cb->nsp_flags == NSP_CI || cb->nsp_flags == NSP_RCI)
                         dn_returned_conn_init(sk, skb);
                 else
                         kfree_skb(skb);

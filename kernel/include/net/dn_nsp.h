@@ -123,6 +123,8 @@ struct  nsp_conn_init_msg {
 	__u8   info;
 	__le16 segsize;
 } __packed;
+#define NSP_CI_RETRANS	4
+#define NSP_CI_DELAY	(2*HZ)
 
 /* Disconnect Initiate/Disconnect Confirm */
 struct  nsp_disconn_init_msg {
@@ -131,7 +133,8 @@ struct  nsp_disconn_init_msg {
 	__le16 srcaddr;
 	__le16 reason;
 } __packed;
-
+#define NSP_CC_RETRANS	4
+#define NSP_CC_DELAY	(2*HZ)
 
 
 struct  srcobj_fmt {
