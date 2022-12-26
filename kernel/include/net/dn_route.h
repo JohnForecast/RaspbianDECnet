@@ -71,9 +71,16 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
 /*
  * Multipliers to be applied to the hello timer interval to generate
  * the listen timer.
+ *
+ * Note: Wireless networking did not exist when DECnet was architected.
+ *	 In a location with a large number of wireless networks (e.g. an
+ *	 apartment complex), packet loss can be higher than an equivalent
+ *	 wired network. The DN_WT3MULT allows some additional leeway for
+ *	 such networks.
  */
 #define DN_T3MULT       2    /* Non-broadcast links */
 #define DN_BCT3MULT     3    /* Broadcast links */
+#define DN_WT3MULT	5    /* Wireless links */
 
 /*
  * The fl structure is what we used to look up the route.

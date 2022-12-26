@@ -55,6 +55,7 @@ struct dn_ifaddr {
  * Timers:
  * t2 - Rate limit timer, min time between routing and hello messages
  * t3 - Hello timer, send hello messages when it expires
+ * t4 - Listen timer, deletes designated router when it expires
  *
  * Callbacks:
  * up() - Called to initialize device, return value can veto use of
@@ -99,6 +100,7 @@ struct dn_dev {
         struct neighbour *peer;   /* Peer on pointopoint links */
         unsigned long uptime;     /* Time device went up in jiffies */
         unsigned long listen;     /* Listen time from router hello */
+	unsigned int multiplier;  /* Listen multiplier */
 };
 
 struct dn_short_packet {

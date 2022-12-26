@@ -438,7 +438,7 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
                                         neigh_release(oldrouter);
                                 }
 
-                                dn_db->listen = DN_BCT3MULT * le16_to_cpu(msg->timer);
+                                dn_db->listen = dn_db->multiplier * le16_to_cpu(msg->timer);
                         }
                         dn_db->t4 = dn_db->listen;
                 }

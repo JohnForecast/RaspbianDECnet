@@ -173,7 +173,7 @@ static struct dn_dev_parms dn_dev_list[] =  {
 static int min_t2[] = { 1 };
 static int max_t2[] = { 60 }; /* No max specified, but this seems sensible */
 static int min_t3[] = { 1 };
-static int max_t3[] = { 8191 }; /* Must fit in 16 bits when multiplied by BCT3MULT or T3MULT */
+static int max_t3[] = { 8191 }; /* Must fit in 16 bits when multiplied by BCT3MULT, WT3MULT or T3MULT */
 
 static int min_priority[1];
 static int max_priority[] = { 127 }; /* From DECnet spec */
@@ -1145,7 +1145,7 @@ static void dn_dev_timer4_func(struct timer_list *t)
                         dn->flags &= ~(DN_NDFLAG_R1 | DN_NDFLAG_R2);
                         neigh_release(router);
                 }
-                dn_db->listen = DN_BCT3MULT * dn_db->parms.t3;
+                dn_db->listen = dn_db->multiplier * dn_db->parms.t3;
                 dn_db->t4 = dn_db->listen;
         } else {
                 dn_db->t4 -= 1;
@@ -1232,6 +1232,10 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
         timer_setup(&dn_db->timer3, dn_dev_timer3_func, 0);
         timer_setup(&dn_db->timer4, dn_dev_timer4_func, 0);
 
+	dn_db->multiplier = DN_T3MULT;
+	if (dev->type == ARPHRD_ETHER)
+		dn_db->multiplier = dev->ieee80211_ptr == NULL ? DN_BCT3MULT : DN_WT3MULT;
+
         dn_db->uptime = jiffies;
 
         dn_db->neigh_parms = neigh_parms_alloc(dev, &dn_neigh_table);
@@ -1256,10 +1260,10 @@ static struct dn_dev *dn_dev_create(struct net_device *dev, int *err)
 
         /*
          * Timer4 only needs to be started for devices which use a listen
-         * timer. For now that means Ethernet only.
+         * timer. For now that means Ethernet/Wireless only.
          */
         if (dn_db->parms.type == ARPHRD_ETHER) {
-                dn_db->t4 = DN_BCT3MULT * dn_db->parms.t3;
+                dn_db->t4 = dn_db->multiplier * dn_db->parms.t3;
                 dn_dev_set_timer4(dev);
         }
         *err = 0;
