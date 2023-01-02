@@ -36,6 +36,8 @@
 #define PROC_DECNET_CACHE       "/proc/net/decnet_cache"
 #define PROC_DECNET             "/proc/net/decnet"
 #define PROC_SEGBUFSIZE         "/proc/sys/net/decnet/segbufsize"
+#define PROC_INCOMINGTIMER	"/proc/sys/net/decnet/incoming_timer"
+#define PROC_OUTGOINGTIMER	"/proc/sys/net/decnet/outgoing_timer"
 
 static uint16_t localaddr, router = 0;
 static uint8_t localarea;
@@ -358,7 +360,7 @@ static void read_node_executor(
   char physaddr[6] = { 0xAA, 0x00, 0x04, 0x00, 0x00, 0x00 };
   struct utsname un;
   char ident[256];
-  int segbufsize;
+  int segbufsize, timer;
   
   node = getnodebyaddr((char *)&localaddr, sizeof(localaddr), PF_DECnet);
 
@@ -391,6 +393,10 @@ static void read_node_executor(
           NICEvalueDU1(4);
           NICEvalueDU1(0);
           NICEvalueDU1(0);
+	if (get_value(PROC_INCOMINGTIMER, &timer))
+	  NICEparamDU2(NICE_P_N_INC_TIMER, timer);
+	if (get_value(PROC_OUTGOINGTIMER, &timer))
+	  NICEparamDU2(NICE_P_N_OUT_TIMER, timer);
         NICEparamCMn(NICE_P_N_NSPVERSION, 3);
           NICEvalueDU1(4);
           NICEvalueDU1(0);
