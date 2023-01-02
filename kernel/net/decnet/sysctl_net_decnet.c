@@ -38,6 +38,8 @@ int decnet_log_martians = 1;
 int decnet_no_fc_max_cwnd = NSP_MIN_WINDOW;
 int decnet_dlyack_seq = 3;
 int decnet_segbufsize = 576;
+int decnet_incoming_timer = 45;
+int decnet_outgoing_timer = 60;
 
 /* Reasonable defaults, I hope, based on tcp's defaults */
 long sysctl_decnet_mem[3] = { 768 << 3, 1024 << 3, 1536 << 3 };
@@ -57,6 +59,8 @@ static int max_decnet_dlyack_seq[] = { NSP_MAX_WINDOW };
 static char node_name[7] = "???";
 static int min_decnet_segbufsize[] = { 230 };
 static int max_decnet_segbufsize[] = { ETH_DATA_LEN - DN_RT_HDR_LONG };
+static int min_decnet_timer[] = { 1 };
+static int max_decnet_timer[] = { 65535 };
 
 static struct ctl_table_header *dn_table_header = NULL;
 
@@ -344,6 +348,24 @@ static struct ctl_table dn_table[] = {
                 .extra1 = &min_decnet_segbufsize,
                 .extra2 = &max_decnet_segbufsize
         },
+	{
+		.procname = "incoming_timer",
+		.data = &decnet_incoming_timer,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = &min_decnet_timer,
+		.extra2 = &max_decnet_timer
+	},
+	{
+		.procname = "outgoing_timer",
+		.data = &decnet_outgoing_timer,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = &min_decnet_timer,
+		.extra2 = &max_decnet_timer
+	},
         {
                 .procname = "decnet_mem",
                 .data = &sysctl_decnet_mem,

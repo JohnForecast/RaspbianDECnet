@@ -235,6 +235,8 @@ extern int decnet_di_count;
 extern int decnet_dr_count;
 extern int decnet_no_fc_max_cwnd;
 extern int decnet_dlyack_seq;
+extern int decnet_incoming_timer;
+extern int decnet_outgoing_timer;
 
 extern long sysctl_decnet_mem[3];
 extern int sysctl_decnet_wmem[3];
