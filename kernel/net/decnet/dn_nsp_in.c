@@ -325,14 +325,7 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
         }
 
 	/*
-	 * 7. Check if a socket with this address already exists. This can occur
-	 * undef 2 circumstances:
-	 *
-	 * On transmitting end:
-	 *	if this is packet is a CI/RCI being returned to sender
-	 *
-	 * On receiving end:
-	 *	if this is a CI/RCI which should be ignored
+	 * 7. Check if this is a CI/RCI being returned to sender.
 	 */
 	err++;
 	if (cb->rt_flags & DN_RT_F_RTS) {
@@ -341,9 +334,6 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
 		sock_put(sk);
 		goto err_out;
 	}
-
-	if (dn_check_duplicate_conn(skb))
-		goto err_out;
 
         /*
          * 8. Look up socket based on destination end username
@@ -385,6 +375,7 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
 
         if ((scp->state == DN_CI) || (scp->state == DN_CD)) {
                 scp->persist = 0;
+		scp->conntimer = 0;
                 scp->addrrem = cb->src_port;
                 sk->sk_state = TCP_ESTABLISHED;
                 scp->state = DN_RUN;
@@ -430,6 +421,7 @@ static void dn_nsp_conn_ack(struct sock *sk, struct sk_buff *skb)
         if (scp->state == DN_CI) {
                 scp->state = DN_CD;
                 scp->persist = 0;
+		scp->conntimer = decnet_outgoing_timer * HZ;
         }
 
         kfree_skb(skb);
@@ -467,6 +459,7 @@ static void dn_nsp_disc_init(struct sock *sk, struct sk_buff *skb)
         case DN_CD:
                 scp->state = DN_RJ;
                 sk->sk_err = ECONNREFUSED;
+		scp->conntimer = 0;
                 break;
         case DN_RUN:
                 sk->sk_shutdown |= SHUTDOWN_MASK;

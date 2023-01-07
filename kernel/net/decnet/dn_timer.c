@@ -84,6 +84,22 @@ static void dn_slow_timer(struct timer_list *t)
 	}
 
 	/*
+	 * Check for outgoing connection timeout. If it expires we want to
+	 * terminate the logical link.
+	 */
+	if (scp->conntimer) {
+		if (scp->state == DN_CD) {
+			if (scp->conntimer <= SLOW_INTERVAL) {
+				scp->conntimer = 0;
+				scp->state = DN_NC;
+				sk->sk_state = TCP_CLOSE;
+				if (!sock_flag(sk, SOCK_DEAD))
+					sk->sk_state_change(sk);
+			} else scp->conntimer -= SLOW_INTERVAL;
+		} else scp->conntimer = 0;
+	}
+
+	/*
 	 * Check for keepalive timeout. After the other timer 'cos if
 	 * the previous timer caused a retransmit, we don't need to
 	 * do this. scp->stamp is the last time that we sent a packet.

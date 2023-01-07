@@ -132,6 +132,7 @@ struct dn_scp                                   /* Session Control Port */
         unsigned long keepalive;
         void (*keepalive_fxn)(struct sock *sk);
         unsigned long ackdelay;
+	unsigned long conntimer;
 };
 
 static inline struct dn_scp *DN_SK(struct sock *sk)
@@ -212,7 +213,7 @@ void dn_unregister_sysctl(void);
 #define DN_MENUVER_PRX 0x04
 #define DN_MENUVER_UIC 0x08
 
-int dn_check_duplicate_conn(struct sk_buff *skb);
+int dn_check_duplicate_conn(struct dn_skb_cb *cb);
 struct sock *dn_check_returned_conn(struct sk_buff *skb);
 struct sock *dn_sklist_find_listener(struct sockaddr_dn *addr);
 struct sock *dn_find_by_skb(struct sk_buff *skb);
@@ -235,7 +236,6 @@ extern int decnet_di_count;
 extern int decnet_dr_count;
 extern int decnet_no_fc_max_cwnd;
 extern int decnet_dlyack_seq;
-extern int decnet_incoming_timer;
 extern int decnet_outgoing_timer;
 
 extern long sysctl_decnet_mem[3];

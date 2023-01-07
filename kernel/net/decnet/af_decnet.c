@@ -418,25 +418,28 @@ struct sock *dn_sklist_find_listener(struct sockaddr_dn *addr)
         return sk;
 }
 
-int dn_check_duplicate_conn(struct sk_buff *skb)
+int dn_check_duplicate_conn(struct dn_skb_cb *cb)
 {
-	struct dn_skb_cb *cb = DN_SKB_CB(skb);
 	struct sock *sk;
 	struct dn_scp *scp;
-	int found = 0;
+	int i, found = 0;
 
 	read_lock(&dn_hash_lock);
-	sk_for_each(sk, &dn_sk_hash[le16_to_cpu(cb->dst_port) & DN_SK_HASH_MASK]) {
-		if (sk->sk_state != TCP_LISTEN) {
-			scp = DN_SK(sk);
-			if (cb->src != dn_saddr2dn(&scp->peer))
-				continue;
-			if (cb->src_port != scp->addrrem)
-				continue;
-			found = 1;
-			break;
+	for (i = 0; i < DN_SK_HASH_SIZE; i++) {
+		sk_for_each(sk, &dn_sk_hash[i]) {
+			if (sk->sk_state != TCP_LISTEN) {
+				scp = DN_SK(sk);
+				if (cb->src != dn_saddr2dn(&scp->peer))
+					continue;
+				if (cb->src_port != scp->addrrem)
+					continue;
+
+				found = 1;
+				goto done;
+			}
 		}
 	}
+done:
 	read_unlock(&dn_hash_lock);
 	return found;
 }
@@ -593,6 +596,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         scp->keepalive = 10 * HZ;
         scp->keepalive_fxn = dn_keepalive;
         scp->ackdelay = 0;
+	scp->conntimer = 0;
 
         dn_start_slow_timer(sk);
 out:
@@ -1175,6 +1179,7 @@ static int dn_accept(struct socket *sock, struct socket *newsock, int flags,
                 return -EINVAL;
         }
 
+try_again:
         skb = skb_dequeue(&sk->sk_receive_queue);
         if (skb == NULL) {
                 skb = dn_wait_for_connect(sk, &timeo);
@@ -1186,6 +1191,18 @@ static int dn_accept(struct socket *sock, struct socket *newsock, int flags,
 
         cb = DN_SKB_CB(skb);
         sk_acceptq_removed(sk);
+
+	/*
+	 * Now we can check to see if this is a duplicate Connect-Initiate
+	 * and there is already a socket set up for this logical link.
+	 */
+	if ((cb->nsp_flags & 0x78) == NSP_RCI) {
+		if (dn_check_duplicate_conn(cb)) {
+			kfree_skb(skb);
+			goto try_again;
+		}
+	}
+
         newsk = dn_alloc_sock(sock_net(sk), newsock, sk->sk_allocation, kern);
         if (newsk == NULL) {
                 release_sock(sk);
