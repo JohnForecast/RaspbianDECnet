@@ -1212,7 +1212,7 @@ try_again:
         release_sock(sk);
 
         dst = skb_dst(skb);
-        sk_dst_set(newsk, dst);
+        __sk_dst_set(newsk, dst);
         skb_dst_set(skb, NULL);
 
         DN_SK(newsk)->state        = DN_CR;

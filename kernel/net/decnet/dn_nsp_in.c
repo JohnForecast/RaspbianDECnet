@@ -834,7 +834,7 @@ got_it:
                          * to avoid messing with sockets which are listening.
                          */
                         if (scp->state == DN_RUN)
-                                sk_dst_set(sk, dst_clone(skb_dst(skb)));
+                                __sk_dst_set(sk, dst_clone(skb_dst(skb)));
                 }
 
                 /* Reset backoff */
