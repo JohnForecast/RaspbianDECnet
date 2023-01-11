@@ -51,6 +51,7 @@
 #include <linux/inet.h>
 #include <linux/route.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <net/sock.h>
 #include <linux/fcntl.h>
 #include <linux/mm.h>
@@ -107,7 +108,11 @@ try_again:
         dn_sk_ports_copy(&fld, scp);
         fld.flowidn_proto = DNPROTO_NSP;
         if (dn_route_output_sock(&sk->sk_dst_cache, &fld, sk, 0) == 0) {
-                dst = sk->sk_dst_cache;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+        	dst = rcu_dereference_check(sk->sk_dst_cache, 1);
+#else
+        	dst = rcu_dereference_protected(sk->sk_dst_cache, 1);
+#endif
                 sk->sk_route_caps = dst->dev->features;
                 goto try_again;
         }

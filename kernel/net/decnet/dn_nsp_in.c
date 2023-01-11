@@ -59,6 +59,7 @@
 #include <linux/inet.h>
 #include <linux/route.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <net/sock.h>
 #include <net/tcp_states.h>
 #include <linux/fcntl.h>
@@ -825,7 +826,11 @@ got_it:
         if (sk != NULL) {
                 struct dn_scp *scp = DN_SK(sk);
 
-                if (skb_dst(skb) != sk->sk_dst_cache) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+        	if (skb_dst(skb) != rcu_dereference_check(sk->sk_dst_cache, 1)) {
+#else
+        	if (skb_dst(skb) != rcu_dereference_protected(sk->sk_dst_cache, 1)) {
+#endif
                         /*
                          * We may have a newer path to the remote system
                          * which takes the Intra-Ethernet bit into

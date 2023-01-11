@@ -548,7 +548,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         sk->sk_allocation  = gfp;
         sk->sk_sndbuf      = sysctl_decnet_wmem[1];
         sk->sk_rcvbuf      = sysctl_decnet_rmem[1];
-        sk->sk_dst_cache   = NULL;
+        sk->sk_dst_cache   = RCU_INITIALIZER(NULL);
         
         /* Initialization of DECnet Session Control Port                */
         scp = DN_SK(sk);
@@ -2089,7 +2089,12 @@ static int dn_sendmsg(struct socket *sock, struct msghdr *msg, size_t size)
                 goto out_err;
         }
 
-        if ((flags & MSG_TRYHARD) && sk->sk_dst_cache)
+	if ((flags & MSG_TRYHARD) &&
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
+        	rcu_dereference_check(sk->sk_dst_cache, 1))
+#else
+        	rcu_dereference_protected(sk->sk_dst_cache, 1))
+#endif
                 dst_negative_advice(sk);
 
         mss = scp->segsize_rem;
