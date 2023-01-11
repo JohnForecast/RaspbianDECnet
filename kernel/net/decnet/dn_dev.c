@@ -75,7 +75,7 @@ static unsigned char dn_eco_version[3]    = {0x02,0x00,0x00};
 static char dn_rt_all_rtp_mcast[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0A};
 static char dn_rt_unknown_dest[ETH_ALEN] = {0x09,0x00,0x2B,0x02,0x01,0x0B};
 
-#ifndef CONFIG_DeCNET_ROUTER
+#ifndef CONFIG_DECNET_ROUTER
 extern int dn_IVprime;
 #endif
 
