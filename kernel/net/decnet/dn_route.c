@@ -348,7 +348,6 @@ static int dn_insert_route(struct dn_route *rt, unsigned int hash, struct dn_rou
                         dst_hold_and_use(&rth->dst, now);
                         spin_unlock_bh(&dn_rt_hash_table[hash].lock);
 
-                        dst_release_immediate(&rt->dst);
                         *rp = rth;
                         return 0;
                 }
@@ -361,7 +360,6 @@ static int dn_insert_route(struct dn_route *rt, unsigned int hash, struct dn_rou
         dst_hold_and_use(&rt->dst, now);
         spin_unlock_bh(&dn_rt_hash_table[hash].lock);
 
-	dst_release_immediate(&rt->dst);
         *rp = rt;
         return 0;
 }
@@ -1255,6 +1253,7 @@ make_route:
                 goto e_neighbour;
 
         hash = dn_hash(rt->fld.saddr, rt->fld.daddr);
+	/* Note: dn_insert_route() increments dst->__refcnt */
         dn_insert_route(rt, hash, (struct dn_route **)pprt);
 
 done:
@@ -1533,6 +1532,7 @@ make_route:
                 goto e_neighbour;
 
         hash = dn_hash(rt->fld.saddr, rt->fld.daddr);
+	/* Note: dn_insert_route() increments dst->__refcnt */
         dn_insert_route(rt, hash, &rt);
         skb_dst_set(skb, &rt->dst);
 
