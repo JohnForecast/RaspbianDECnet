@@ -412,7 +412,10 @@ Raspberry Pi 4B (2 GB)(2019-7-10 and 2019-9-26 versions of Raspbian Buster)
 
 Raspberry Pi 4B (2 GB) "testing" 64-bit Raspbian kernel (still uses 32-bit userland).
 
-In addition this code has been tested on Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
+In addition this code has been tested on:
+
+    Debian 9.0 (Stretch) on x86 64-bit systems up to kernel 4.19.269
+    Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
 
 
 Raspberry Pi 4B (2 GB) 2020-02-05 version of Raspbian Buster
