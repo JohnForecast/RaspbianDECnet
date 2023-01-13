@@ -415,6 +415,10 @@ Raspberry Pi 4B (2 GB) "testing" 64-bit Raspbian kernel (still uses 32-bit userl
 In addition this code has been tested on:
 
     Debian 9.0 (Stretch) on x86 64-bit systems up to kernel 4.19.269
+        Note that earlier version of GCC (such as available on Debian Stretch) will
+        generate 4 warnings (3 in af_decnet.c and 1 in dn_nsp_in.c) related to
+        changes (case statement fall through) needed to compile under the latest GCC
+        available in RaspiOS.
     Debian 10.0 (Buster) on x86 systems (both 32 and 64-bit systems).
 
 
