@@ -249,4 +249,11 @@ extern int sysctl_decnet_rmem[3];
 
 extern int dn_nsp_retrans_conn_conf(struct sock *sk);
 extern int dn_nsp_retrans_conninit(struct sock *sk);
+
+/*
+ * Backwards compatibility for compilers earlier than GCC7
+ */
+#ifndef fallthrough
+#define fallthrough		do {} while (0)		/* fallthrough */
+#endif
 #endif /* _NET_DN_H */
