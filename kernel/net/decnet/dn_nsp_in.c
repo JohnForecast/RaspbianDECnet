@@ -312,7 +312,7 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
                         goto err_out;
                 if (dn_check_idf(&ptr, &len, 39, 1))
                         goto err_out;
-                if (dn_check_idf(&ptr, &len, 39, (menuver & DN_MENUVER_USR) ? 1 : 0))
+                if (dn_check_idf(&ptr, &len, 39, 1))
                         goto err_out;
         }
 
