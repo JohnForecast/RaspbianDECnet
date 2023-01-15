@@ -575,8 +575,14 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         scp->accept_mode = ACC_IMMED;
         scp->addr.sdn_family    = AF_DECnet;
         scp->peer.sdn_family    = AF_DECnet;
+	scp->conndata_in.opt_optl = 0;
+	scp->conndata_out.opt_optl = 0;
+	scp->discdata_in.opt_optl = 0;
+	scp->discdata_out.opt_optl = 0;
         scp->accessdata.acc_accl = 5;
         memcpy(scp->accessdata.acc_acc, "LINUX", 5);
+	scp->accessdata.acc_passl = 0;
+	scp->accessdata.acc_userl = 0;
 
         scp->max_window   = NSP_MAX_WINDOW;
         scp->snd_window   = NSP_MIN_WINDOW;
