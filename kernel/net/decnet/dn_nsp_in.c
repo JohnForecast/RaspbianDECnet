@@ -612,37 +612,6 @@ out:
         kfree_skb(skb);
 }
 
-/*
- * Copy of sock_queue_rcv_skb (from sock.h) without
- * bh_lock_sock() (its already held when this is called) which
- * also allows data and other data to be queued to a socket.
- */
-static __inline__ int dn_queue_skb(struct sock *sk, struct sk_buff *skb, int sig, struct sk_buff_head *queue)
-{
-        int err;
-
-        /* Cast skb->rcvbuf to unsigned... It's pointless, but reduces
-           number of warnings when compiling with -W --ANK
-         */
-        if (atomic_read(&sk->sk_rmem_alloc) + skb->truesize >=
-            (unsigned int)sk->sk_rcvbuf) {
-                err = -ENOMEM;
-                goto out;
-        }
-
-        err = sk_filter(sk, skb);
-        if (err)
-                goto out;
-
-        skb_set_owner_r(skb, sk);
-        skb_queue_tail(queue, skb);
-
-        if (!sock_flag(sk, SOCK_DEAD))
-                sk->sk_data_ready(sk);
-out:
-        return err;
-}
-
 static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
 {
         struct dn_scp *scp = DN_SK(sk);
@@ -657,12 +626,13 @@ static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
         skb_pull(skb, 2);
 
         if (seq_next(scp->numoth_rcv, segnum)) {
-
-                if (dn_queue_skb(sk, skb, SIGURG, &scp->other_receive_queue) == 0) {
+		rcu_read_lock();
+		if (sock_queue_rcv_skb(sk, skb) == 0) {
                         seq_add(&scp->numoth_rcv, 1);
                         scp->other_report = 0;
                         queued = 1;
                 }
+		rcu_read_unlock();
         }
 
         dn_nsp_send_oth_ack(sk);
@@ -685,10 +655,12 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
         skb_pull(skb, 2);
 
         if (seq_next(scp->numdat_rcv, segnum)) {
-                if (dn_queue_skb(sk, skb, SIGIO, &sk->sk_receive_queue) == 0) {
+		rcu_read_lock();
+		if (sock_queue_rcv_skb(sk, skb) == 0) {
                         seq_add(&scp->numdat_rcv, 1);
                         queued = 1;
                 }
+		rcu_read_unlock();
 
                 if ((scp->flowloc_sw == DN_SEND) && dn_congested(sk)) {
                         scp->flowloc_sw = DN_DONTSEND;
