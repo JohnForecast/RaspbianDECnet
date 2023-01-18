@@ -156,20 +156,20 @@ static int dn_process_ack(struct sock *sk, struct sk_buff *skb, int oth)
                                 ack ^= 0x2000;
                         dn_ack(sk, skb, ack);
                 }
-        }
 
-        if (skb->len < 2)
-                return len;
+        	if (skb->len < 2)
+                	return len;
 
-        if ((ack = le16_to_cpu(*ptr)) & 0x8000) {
-                skb_pull(skb, 2);
-                len += 2;
-                if ((ack & 0x4000) == 0) {
-                        if (oth)
-                                ack ^= 0x2000;
-                        dn_ack(sk, skb, ack);
-                }
-        }
+        	if ((ack = le16_to_cpu(*ptr)) & 0x8000) {
+                	skb_pull(skb, 2);
+                	len += 2;
+                	if ((ack & 0x4000) == 0) {
+                        	if (oth)
+                                	ack ^= 0x2000;
+                        	dn_ack(sk, skb, ack);
+                	}
+        	}
+	}
 
         return len;
 }
