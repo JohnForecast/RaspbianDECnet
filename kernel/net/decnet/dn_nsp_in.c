@@ -217,8 +217,7 @@ static struct {
  { 0,             "CI: Truncated at menuver" },
  { 0,             "CI: Truncated before access or user data" },
  { NSP_REASON_IO, "CI: Access data format error" },
- { NSP_REASON_IO, "CI: User data format error" },
- { NSP_REASON_OK, "CI/RCI: Duplicate or returned to sender" }
+ { NSP_REASON_IO, "CI: User data format error" }
 };
 
 /*
@@ -325,19 +324,8 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
                         goto err_out;
         }
 
-	/*
-	 * 7. Check if this is a CI/RCI being returned to sender.
-	 */
-	err++;
-	if (cb->rt_flags & DN_RT_F_RTS) {
-		if ((sk = dn_check_returned_conn(skb)) != NULL)
-			return sk;
-		sock_put(sk);
-		goto err_out;
-	}
-
         /*
-         * 8. Look up socket based on destination end username
+         * 7. Look up socket based on destination end username
          */
         return dn_sklist_find_listener(&dstaddr);
 err_out:
@@ -684,7 +672,7 @@ out:
  * deals with it. It puts the socket into the NO_COMMUNICATION
  * state.
  */
-static void dn_returned_conn_init(struct sock *sk, struct sk_buff *skb)
+static void dn_returned_conn_init(struct sock *sk)
 {
         struct dn_scp *scp = DN_SK(sk);
 
@@ -695,8 +683,6 @@ static void dn_returned_conn_init(struct sock *sk, struct sk_buff *skb)
                 if (!sock_flag(sk, SOCK_DEAD))
                         sk->sk_state_change(sk);
         }
-
-        kfree_skb(skb);
 }
 
 static int dn_nsp_no_socket(struct sk_buff *skb, unsigned short reason)
@@ -758,10 +744,30 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
                         goto free_out;
                 case 0x10:
                 case 0x60:
+			if (cb->rt_flags & DN_RT_F_RTS) {
+				if (pskb_may_pull(skb, 4)) {
+					cb->dst_port = *(__le16 *)ptr;
+					ptr += 2;
+					cb->src_port = *(__le16 *)ptr;
+					if ((sk = dn_check_returned_conn(skb)) != NULL) {
+						dn_returned_conn_init(sk);
+						sock_put(sk);
+					}
+				}
+				kfree_skb(skb);
+				return NET_RX_SUCCESS;
+			}
                         sk = dn_find_listener(skb, &reason);
                         goto got_it;
                 }
         }
+
+	/*
+	 * We've already handled all packet types which can be returned
+	 * to sender (CI and retransmitted CI). Discard all other packet types.
+	 */
+        if (unlikely(cb->rt_flags & DN_RT_F_RTS))
+		goto free_out;
 
         if (!pskb_may_pull(skb, 3))
                 goto free_out;
@@ -780,15 +786,6 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
                 cb->src_port = *(__le16 *)ptr;
                 ptr += 2;
                 skb_pull(skb, 5);
-        }
-
-        /*
-         * Returned packets...
-         * Swap src & dst and look up in the normal way.
-         */
-        if (unlikely(cb->rt_flags & DN_RT_F_RTS)) {
-                swap(cb->dst_port, cb->src_port);
-                swap(cb->dst, cb->src);
         }
 
         /*
@@ -854,10 +851,7 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
         struct dn_skb_cb *cb = DN_SKB_CB(skb);
 
         if (cb->rt_flags & DN_RT_F_RTS) {
-                if (cb->nsp_flags == NSP_CI || cb->nsp_flags == NSP_RCI)
-                        dn_returned_conn_init(sk, skb);
-                else
-                        kfree_skb(skb);
+                kfree_skb(skb);
                 return NET_RX_SUCCESS;
         }
 
