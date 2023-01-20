@@ -1963,7 +1963,7 @@ out:
 static inline int dn_queue_too_long(struct dn_scp *scp, struct sk_buff_head *queue, int flags)
 {
         if (flags & MSG_OOB) {
-                if (scp->flowrem_oth == 0)
+                if ((scp->flowrem_oth == 0) || !skb_queue_empty(queue))
                         return 1;
         } else {
                 if (skb_queue_len(queue) >= scp->snd_window)

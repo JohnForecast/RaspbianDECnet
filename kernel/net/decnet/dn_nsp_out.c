@@ -394,11 +394,16 @@ void dn_nsp_queue_xmit(struct sock *sk, struct sk_buff *skb,
 
         if (oth)
                 skb_queue_tail(&scp->other_xmit_queue, skb);
-        else
+        else {
                 skb_queue_tail(&scp->data_xmit_queue, skb);
 
-        if (scp->flowrem_sw != DN_SEND)
-                return;
+		/*
+		 * SEND/DONTSEND flow control only applies to the data
+		 * channel.
+	 	 */
+        	if (scp->flowrem_sw != DN_SEND)
+                	return;
+	}
 
         dn_nsp_clone_and_send(skb, gfp);
 }
