@@ -302,7 +302,7 @@ if [ -z "$forcekernel" ]; then
     if [ -e /etc/decnet.conf ]; then
         while $TRUE ; do
             echo
-            echo "There appears to to an existing DECnet configuration present"
+            echo "There appears to be an existing DECnet configuration present"
             echo "Do you want to:"
             echo "  1 - Delete the existing configuration files and create new ones"
             echo "  2 - Use the existing configuration files"
