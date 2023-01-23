@@ -409,7 +409,7 @@ void dn_nsp_queue_xmit(struct sock *sk, struct sk_buff *skb,
 }
 
 
-int dn_nsp_check_xmit_queue(struct sock *sk, struct sk_buff *skb, struct sk_buff_head *q, unsigned short acknum)
+int dn_nsp_check_xmit_queue(struct sock *sk, struct sk_buff *skb, struct sk_buff_head *q, unsigned short acknum, int oth)
 {
         struct dn_skb_cb *cb = DN_SKB_CB(skb);
         struct dn_scp *scp = DN_SK(sk);
@@ -475,6 +475,9 @@ int dn_nsp_check_xmit_queue(struct sock *sk, struct sk_buff *skb, struct sk_buff
                 if (xmit_count > 1)
                         try_retrans = 1;
         }
+
+	if (oth)
+		dn_nsp_schedule_pending(sk, DN_PEND_NONE);
 
         if (try_retrans)
                 dn_nsp_output(sk);
@@ -642,7 +645,7 @@ void dn_nsp_return_disc(struct sk_buff *skb, unsigned char msgflg,
 }
 
 
-void dn_nsp_send_link(struct sock *sk, unsigned char lsflags, char fcval)
+int dn_nsp_send_link(struct sock *sk, unsigned char lsflags, char fcval)
 {
         struct dn_scp *scp = DN_SK(sk);
         struct sk_buff *skb;
@@ -650,7 +653,7 @@ void dn_nsp_send_link(struct sock *sk, unsigned char lsflags, char fcval)
         gfp_t gfp = GFP_ATOMIC;
 
         if ((skb = dn_alloc_skb(sk, DN_MAX_NSP_DATA_HEADER + 2, gfp)) == NULL)
-                return;
+                return 0;
 
         skb_reserve(skb, DN_MAX_NSP_DATA_HEADER);
         ptr = skb_put(skb, 2);
@@ -662,6 +665,34 @@ void dn_nsp_send_link(struct sock *sk, unsigned char lsflags, char fcval)
 
         scp->persist = dn_nsp_persist(sk);
         scp->persist_fxn = dn_nsp_xmit_timeout;
+	return 1;
+}
+
+void dn_nsp_schedule_pending(struct sock *sk, int what)
+{
+	struct dn_scp *scp = DN_SK(sk);
+
+	scp->pending |= what;
+	if (scp->pending && skb_queue_empty(&scp->other_xmit_queue)) {
+		if (scp->pending & DN_PEND_INTR) {
+			if (dn_nsp_send_link(sk, DN_FCVAL_INTR, 1))
+				scp->pending &= ~DN_PEND_INTR;
+			return;
+		}
+
+		if (scp->pending & DN_PEND_SW) {
+			if (dn_nsp_send_link(sk, DN_FCVAL_DATA | scp->flowloc_sw, 0))
+				scp->pending &= ~DN_PEND_SW;
+			return;
+		}
+
+		/* Dow we really need this? */
+		if (scp->pending & DN_PEND_IDLE) {
+			if (dn_nsp_send_link(sk, DN_NOCHANGE, 0))
+				scp->pending &= ~DN_PEND_IDLE;
+			return;
+		}
+	}
 }
 
 int dn_nsp_retrans_conninit(struct sock *sk)

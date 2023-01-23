@@ -58,10 +58,20 @@ struct dn_scp                                   /* Session Control Port */
         __u16           segsize_rem;
         __u16           segsize_loc;
 
+	/*
+	 * Pending transactions for link service requests. In order of
+	 * priority to send.
+	 */
+	__u8		pending;
+#define DN_PEND_INTR	0x80		/* Interrupt flow control +1 */
+#define DN_PEND_SW	0x40		/* Current setting of flowloc_sw */
+#define DN_PEND_IDLE	0x20		/* Idle link service message */
+#define DN_PEND_NONE	0x00		/* Nothing to do */
+
         __u8            nonagle;
         __u8            multi_ireq;
         __u8            accept_mode;
-        unsigned long           seg_total; /* Running total of current segment */
+        unsigned long   seg_total;	/* Running total of current segment */
 
         struct optdata_dn     conndata_in;
         struct optdata_dn     conndata_out;
@@ -125,12 +135,13 @@ struct dn_scp                                   /* Session Control Port */
         /*
          * Stuff to do with the slow timer
          */
-        unsigned long stamp;          /* time of last transmit */
+        unsigned long stamp;          /* time of last receive */
         unsigned long persist;
 	unsigned long persist_count;
         int (*persist_fxn)(struct sock *sk);
         unsigned long keepalive;
         void (*keepalive_fxn)(struct sock *sk);
+#define DN_KEEPALIVE	(10 * HZ)
         unsigned long ackdelay;
 	unsigned long conntimer;
 };
@@ -228,6 +239,7 @@ int dn_username2sockaddr(unsigned char *data, int len, struct sockaddr_dn *addr,
 
 void dn_start_slow_timer(struct sock *sk);
 void dn_stop_slow_timer(struct sock *sk);
+void dn_nsp_schedule_pending(struct sock *sk, int what);
 
 extern __le16 decnet_address;
 extern int decnet_debug_level;

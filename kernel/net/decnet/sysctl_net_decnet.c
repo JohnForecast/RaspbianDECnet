@@ -40,10 +40,9 @@ int decnet_dlyack_seq = 3;
 int decnet_segbufsize = 576;
 int decnet_outgoing_timer = 60;
 
-/* Reasonable defaults, I hope, based on tcp's defaults */
-long sysctl_decnet_mem[3] = { 768 << 3, 1024 << 3, 1536 << 3 };
-int sysctl_decnet_wmem[3] = { 4 * 1024, 16 * 1024, 128 * 1024 };
-int sysctl_decnet_rmem[3] = { 4 * 1024, 87380, 87380 * 2 };
+long sysctl_decnet_mem[3];
+int sysctl_decnet_wmem[3];
+int sysctl_decnet_rmem[3];
 
 #ifdef CONFIG_SYSCTL
 extern int decnet_dst_gc_interval;

@@ -71,6 +71,7 @@
 #include <linux/init.h>
 #include <linux/poll.h>
 #include <linux/netfilter_decnet.h>
+#include <trace/events/sock.h>
 #include <net/neighbour.h>
 #include <net/dst.h>
 #include <net/dn.h>
@@ -114,7 +115,7 @@ static void dn_ack(struct sock *sk, struct sk_buff *skb, unsigned short ack)
                         scp->ackrcv_dat = ack & NSP_SG_MASK;
                         wakeup |= dn_nsp_check_xmit_queue(sk, skb,
                                                           &scp->data_xmit_queue,
-                                                          ack);
+                                                          ack, 0);
                 }
                 break;
         case 1: /* NAK - Data */
@@ -124,7 +125,7 @@ static void dn_ack(struct sock *sk, struct sk_buff *skb, unsigned short ack)
                         scp->ackrcv_oth = ack & NSP_SG_MASK;
                         wakeup |= dn_nsp_check_xmit_queue(sk, skb,
                                                           &scp->other_xmit_queue,
-                                                          ack);
+                                                          ack, 1);
                 }
                 break;
         case 3: /* NAK - OtherData */
@@ -233,7 +234,6 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
         struct nsp_conn_init_msg *msg = (struct nsp_conn_init_msg *)skb->data;
         struct sockaddr_dn dstaddr;
         struct sockaddr_dn srcaddr;
-	struct sock *sk;
         unsigned char type = 0;
         int dstlen;
         int srclen;
@@ -394,7 +394,7 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
                                               scp->conndata_in.opt_data, dlen);
                         }
                 }
-                dn_nsp_send_link(sk, DN_NOCHANGE, 0);
+		dn_nsp_schedule_pending(sk, DN_PEND_IDLE);
                 if (!sock_flag(sk, SOCK_DEAD))
                         sk->sk_state_change(sk);
         }
@@ -600,6 +600,49 @@ out:
         kfree_skb(skb);
 }
 
+/*
+ * NOTE:	Keep this in sync with the code in sock.c
+ *
+ * Copy of sock_queue_rcv_skb() (from sock.c) modified to accept a pointer
+ * to the buffer queue.
+ */
+static __inline__ int dn_queue_skb(struct sock *sk, struct sk_buff *skb, struct sk_buff_head *queue)
+{
+	int err;
+	unsigned long flags;
+
+	err = sk_filter(sk, skb);
+	if (err)
+		return err;
+
+	if (atomic_read(&sk->sk_rmem_alloc) >= sk->sk_rcvbuf) {
+		atomic_inc(&sk->sk_drops);
+		return -ENOMEM;
+	}
+
+	if (!sk_rmem_schedule(sk, skb, skb->truesize)) {
+		atomic_inc(&sk->sk_drops);
+		return -ENOBUFS;
+	}
+
+	skb->dev = NULL;
+	skb_set_owner_r(skb, sk);
+
+	/* we escape from rcu protected region, make sure we dont leak
+	 * a norefcounted dst
+	 */
+	skb_dst_force(skb);
+
+	spin_lock_irqsave(&queue->lock, flags);
+	sock_skb_set_dropcount(sk, skb);
+	__skb_queue_tail(queue, skb);
+	spin_unlock_irqrestore(&queue->lock, flags);
+
+	if (!sock_flag(sk, SOCK_DEAD))
+		sk->sk_data_ready(sk);
+	return 0;
+}
+
 static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
 {
         struct dn_scp *scp = DN_SK(sk);
@@ -615,7 +658,7 @@ static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
 
         if (seq_next(scp->numoth_rcv, segnum)) {
 		rcu_read_lock();
-		if (sock_queue_rcv_skb(sk, skb) == 0) {
+		if (dn_queue_skb(sk, skb, &scp->other_receive_queue) == 0) {
                         seq_add(&scp->numoth_rcv, 1);
                         scp->other_report = 0;
                         queued = 1;
@@ -644,7 +687,7 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
 
         if (seq_next(scp->numdat_rcv, segnum)) {
 		rcu_read_lock();
-		if (sock_queue_rcv_skb(sk, skb) == 0) {
+		if (dn_queue_skb(sk, skb, &sk->sk_receive_queue) == 0) {
                         seq_add(&scp->numdat_rcv, 1);
                         queued = 1;
                 }
@@ -652,7 +695,7 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
 
                 if ((scp->flowloc_sw == DN_SEND) && dn_congested(sk)) {
                         scp->flowloc_sw = DN_DONTSEND;
-                        dn_nsp_send_link(sk, DN_DONTSEND, 0);
+			dn_nsp_schedule_pending(sk, DN_PEND_SW);
                 }
         }
 
@@ -814,6 +857,11 @@ got_it:
 
                 /* Reset backoff */
                 scp->nsp_rxtshift = 0;
+
+		/*
+		 * Remember when we last received a message.
+		 */
+		scp->stamp = jiffies;
 
                 /*
                  * We linearize everything except data segments here.

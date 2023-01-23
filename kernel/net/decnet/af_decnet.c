@@ -117,6 +117,7 @@ Version 0.0.6    2.1.110   07-aug-98   Eduardo Marcelo Serrat
 #include <linux/route.h>
 #include <linux/netfilter.h>
 #include <linux/seq_file.h>
+#include <linux/swap.h>
 #include <linux/version.h>
 #include <net/sock.h>
 #include <net/tcp_states.h>
@@ -546,8 +547,8 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         sk->sk_family      = PF_DECnet;
         sk->sk_protocol    = 0;
         sk->sk_allocation  = gfp;
-        sk->sk_sndbuf      = sysctl_decnet_wmem[1];
-        sk->sk_rcvbuf      = sysctl_decnet_rmem[1];
+        sk->sk_sndbuf      = READ_ONCE(sysctl_decnet_wmem[1]);
+        sk->sk_rcvbuf      = READ_ONCE(sysctl_decnet_rmem[1]);
         sk->sk_dst_cache   = RCU_INITIALIZER(NULL);
         
         /* Initialization of DECnet Session Control Port                */
@@ -570,6 +571,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         scp->info_rem = 0;
         scp->info_loc = 0x03; /* NSP version 4.1 */
         scp->segsize_rem = 230 - DN_MAX_NSP_DATA_HEADER; /* Default: Updated by remote segsize */
+	scp->pending = 0;
         scp->nonagle = 0;
         scp->multi_ireq = 1;
         scp->accept_mode = ACC_IMMED;
@@ -599,7 +601,7 @@ static struct sock *dn_alloc_sock(struct net *net, struct socket *sock, gfp_t gf
         scp->persist = 0;
 	scp->persist_count = 0;
         scp->persist_fxn = NULL;
-        scp->keepalive = 10 * HZ;
+        scp->keepalive = DN_KEEPALIVE;
         scp->keepalive_fxn = dn_keepalive;
         scp->ackdelay = 0;
 	scp->conntimer = 0;
@@ -639,6 +641,7 @@ int dn_destroy_timer(struct sock *sk)
         struct dn_scp *scp = DN_SK(sk);
 
         scp->persist = dn_nsp_persist(sk);
+	scp->stamp = jiffies;
 
         switch (scp->state) {
         case DN_DI:
@@ -1916,11 +1919,11 @@ static int dn_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
                          * in loop.
                          */
                         if (flags & MSG_OOB) {
-                                dn_nsp_send_link(sk, DN_FCVAL_INTR, 1);
+				dn_nsp_schedule_pending(sk, DN_PEND_INTR);
                         } else {
                                 if ((scp->flowloc_sw == DN_DONTSEND) && !dn_congested(sk)) {
                                         scp->flowloc_sw = DN_SEND;
-                                        dn_nsp_send_link(sk, DN_FCVAL_DATA | DN_SEND, 0);
+					dn_nsp_schedule_pending(sk, DN_PEND_SW);
                                 }
                         }
                 }
@@ -2504,7 +2507,8 @@ static const char banner[] __initconst = KERN_INFO
 
 static int __init decnet_init(void)
 {
-        int rc;
+        int rc, max_rshare, max_wshare;
+	unsigned long limit;
 
         printk(banner);
 
@@ -2525,6 +2529,33 @@ static int __init decnet_init(void)
                         &dn_socket_seq_ops, sizeof(struct dn_iter_state),
                         NULL);
         dn_register_sysctl();
+
+	limit = max(nr_free_buffer_pages() / 16, 128UL);
+	sysctl_decnet_mem[0] = limit / 4 * 3;
+	sysctl_decnet_mem[1] = limit;
+	sysctl_decnet_mem[2] = sysctl_decnet_mem[0] * 2;
+
+	limit = nr_free_buffer_pages() << (PAGE_SHIFT - 7);
+	max_wshare = min(4UL * 1024 *1024, limit);
+	max_rshare = min(6Ul * 1024 * 1024, limit);
+
+	sysctl_decnet_wmem[0] = SK_MEM_QUANTUM;
+	sysctl_decnet_wmem[1] = 16 * 1024;
+	sysctl_decnet_wmem[2] = max(64 * 1024, max_wshare);
+
+	sysctl_decnet_rmem[0] = SK_MEM_QUANTUM;
+	sysctl_decnet_rmem[1] = 131072;
+	sysctl_decnet_rmem[2] = max(131072, max_rshare);
+
+	pr_info("decnet_mem:  %ld, %ld, %ld\n",
+		sysctl_decnet_mem[0], sysctl_decnet_mem[1],
+		sysctl_decnet_mem[2]);
+	pr_info("decnet_wmem: %u, %u, %u\n",
+		sysctl_decnet_wmem[0], sysctl_decnet_wmem[1],
+		sysctl_decnet_wmem[2]);
+	pr_info("decnet_rmem: %u, %u, %u\n",
+		sysctl_decnet_rmem[0], sysctl_decnet_rmem[1],
+		sysctl_decnet_rmem[2]);
 out:
         return rc;
 
