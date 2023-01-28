@@ -641,19 +641,20 @@ int dn_destroy_timer(struct sock *sk)
         struct dn_scp *scp = DN_SK(sk);
 
         scp->persist = dn_nsp_persist(sk);
-	scp->stamp = jiffies;
 
         switch (scp->state) {
         case DN_DI:
                 dn_nsp_send_disc(sk, NSP_DISCINIT, 0, GFP_ATOMIC);
                 if (scp->nsp_rxtshift >= decnet_di_count)
                         scp->state = DN_CN;
+		scp->stamp = jiffies;
                 return 0;
 
         case DN_DR:
                 dn_nsp_send_disc(sk, NSP_DISCINIT, 0, GFP_ATOMIC);
                 if (scp->nsp_rxtshift >= decnet_dr_count)
                         scp->state = DN_DRC;
+		scp->stamp = jiffies;
                 return 0;
         }
 
