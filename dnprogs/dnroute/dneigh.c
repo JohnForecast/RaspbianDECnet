@@ -144,7 +144,7 @@ int proc_file (FILE * fh) {
    hwa = "?";
   }
 
-  printf("%-24s %-7s %-19s %-10s %-10i %s\n", get_node_name(buf), get_hwtype(dev), hwa, flags, blocksize, dev);
+  printf("%-24s %-7s %-19s %-6s %-10i %s\n", get_node_name(buf), get_hwtype(dev), hwa, flags, blocksize, dev);
  }
 
  return 0;
@@ -262,7 +262,7 @@ int main (int argc, char * argv[]) {
   return 2;
  }
 
- printf("Node                     HWtype  HWaddress           Flags      MTU        Iface\n");
+ printf("Node                     HWtype  HWaddress           Flags  MTU        Iface\n");
  proc_file(fh);
 
  fclose(fh);
