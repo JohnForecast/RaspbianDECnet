@@ -200,6 +200,39 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    2/2/2023
+
+   1. Numerous fixes to connection establishment
+
+	- Don't clean Request Return to Sender flag during transmit
+
+	- Detect and discard duplicate Connect-Initiate and Retransmitted-
+	  Connect-Initiate messages
+
+	- Detect returned Connect-Initiate messages which indicate that the
+	  remote host is unreachable
+
+	- Retransmit Connect-Initiate and Connect-Confirm messages up to 4
+	  times with an interval of 2 seconds. After 4 retransmits, return
+	  EHOSTUNREACH
+
+	- Add support for outgoing connection timer
+
+	- Fixed parsing on inbound Connect-Initiate messages - the ACCOUNT
+	  field is not dependent on the USRDATA field being present
+
+   2. Add a new T3 multiplier for 802.11 wireless networks which have lower
+      reliability of multicast traffic
+
+   3. Update to use RCU routines to update the cached route for a logical link
+
+   4. Bring dn_queue_skb() up to date sinc it is (alomost) a copy of a
+      standard kernel routine
+
+   5. Limit link service/interrupt message transmission so that there is only
+      1 outstanding message at a time
+
+
     11/18/2021
     
    1. Change Kconfig to use the new syntax. This change occurred in the 5.8 kernel.
