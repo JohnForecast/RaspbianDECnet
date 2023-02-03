@@ -1019,10 +1019,15 @@ static void dn_send_brd_hello(struct net_device *dev, struct dn_ifaddr *ifa)
 {
         struct dn_dev *dn_db = rcu_dereference_raw(dev->dn_ptr);
 
-        if (dn_db->parms.forwarding == 0)
-                dn_send_endnode_hello(dev, ifa);
-        else
-                dn_send_router_hello(dev, ifa);
+	/*
+	 * Don't send hello messages if we don't have an address yet
+	 */
+	if (decnet_address) {
+        	if (dn_db->parms.forwarding == 0)
+                	dn_send_endnode_hello(dev, ifa);
+        	else
+                	dn_send_router_hello(dev, ifa);
+	}
 }
 
 static void dn_send_ptp_hello(struct net_device *dev, struct dn_ifaddr *ifa)
@@ -1035,7 +1040,15 @@ static void dn_send_ptp_hello(struct net_device *dev, struct dn_ifaddr *ifa)
         char src[ETH_ALEN];
 
         if (skb == NULL)
-                return ;
+                return;
+
+	/*
+	 * Don't send hello messages if we don't have an address yet
+	 */
+	if (decnet_address == 0) {
+		kfree_skb(skb);
+		return;
+	}
 
         skb->dev = dev;
         skb_push(skb, dev->hard_header_len);

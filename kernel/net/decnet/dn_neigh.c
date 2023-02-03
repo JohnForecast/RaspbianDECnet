@@ -388,6 +388,14 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
         struct dn_dev *dn_db;
         __le16 src;
 
+	/*
+	 * Discard router hellos if we don't have an address set yet
+	 */
+	if (decnet_address == 0) {
+		kfree_skb(skb);
+		return 0;
+	}
+
         src = dn_eth2dn(msg->id);
 
         neigh = __neigh_lookup(&dn_neigh_table, &src, skb->dev, 1);
