@@ -80,6 +80,8 @@ extern int dn_IVprime;
 #endif
 
 char *dn_ifname = NULL;
+char *dn_nodeaddr = NULL;
+char *dn_nodename = NULL;
 
 extern struct neigh_table dn_neigh_table;
 
@@ -1557,8 +1559,100 @@ static int addr[2], count = 0;
 module_param_array(addr, int, &count, 0444);
 MODULE_PARM_DESC(addr, "The DECnet address of this machine: area,node");
 
+module_param(dn_nodeaddr, charp, 0);
+MODULE_PARM_DESC(dn_nodeaddr, "The DECnet address of this machine as a string");
+
+module_param(dn_nodename, charp, 0);
+MODULE_PARM_DESC(dn_nodename, "The DECnet node name of this machine as a string");
+
 module_param(dn_ifname, charp, 0444);
 MODULE_PARM_DESC(dn_ifname, "The network interface to use for DECnet");
+
+#define ISNUM(x)	(((x) >= '0') && ((x) <= '9'))
+#define ISLOWER(x)	(((x) >= 'a') && ((x) <= 'z'))
+#define ISUPPER(x)	(((x) >= 'A') && ((x) <= 'Z'))
+#define ISALPHA(x)	(ISLOWER(x) || ISUPPER(x))
+#define ISALPHANUM(x)	(ISNUM(x) || ISALPHA(x))
+#define TOUPPER(x)	(ISLOWER(x) ? ((x) + ('A' - 'a')) : (x))
+
+extern char node_name[7];
+
+/*
+ * Simple routine to parse an ASCII DECnet address, copied from
+ * sysctl_net_decnet.c
+ */
+static int __init parse_addr(__le16 *addr, char *str)
+{
+	__u16 area, node;
+
+	while (*str && !(ISNUM(*str))) str++;
+
+	if (*str == 0)
+		return -1;
+
+	area = *str++ - '0';
+	if (ISNUM(*str)) {
+		area *= 10;
+		area += *str++ - '0';
+	}
+
+	if (*str++ != '.')
+		return -1;
+
+	if (!ISNUM(*str))
+		return -1;
+
+	node = *str++ - '0';
+	if (ISNUM(*str)) {
+		node *= 10;
+		node += *str++ - '0';
+	}
+	if (ISNUM(*str)) {
+		node *= 10;
+		node += *str++ - '0';
+	}
+	if (ISNUM(*str)) {
+		node *= 10;
+		node += *str++ - '0';
+	}
+
+	if ((node == 0) || (node > 1023) || (area == 0) || (area > 63))
+		return -1;
+
+	if (ISALPHANUM(*str))
+		return -1;
+
+	*addr = cpu_to_le16((area << 10) | node);
+	return 0;
+}
+
+/*
+ * Simple routine to parse a DECnet node name.
+ */
+static int __init parse_name(char *str)
+{
+	int valid = 0;
+	char *cp = str;
+
+	if ((strlen(str) > 0) && (strlen(str) <= 6)) {
+		while (*str != 0) {
+			if (!ISALPHANUM(*str))
+				return -1;
+			if (ISALPHA(*str++))
+				valid = 1;
+		}
+
+		if (valid) {
+			int i = 0;
+
+			do {
+				node_name[i++] = TOUPPER(*cp);
+			} while (*cp++ != 0);
+			return 0;
+		}
+	}
+	return -1;
+}
 
 void __init dn_dev_init(void)
 {
@@ -1577,9 +1671,17 @@ void __init dn_dev_init(void)
                         printk(KERN_ERR "DECnet: area and node addresses required");
                         addr[0] = addr[1] = 0;
                 }
+        	decnet_address = cpu_to_le16((addr[0] << 10) | addr[1]);
         }
 
-        decnet_address = cpu_to_le16((addr[0] << 10) | addr[1]);
+	if (dn_nodeaddr != NULL)
+		if (parse_addr(&decnet_address, dn_nodeaddr))
+			pr_info("Invalid DECnet node address \"%s\"\n",
+				dn_nodeaddr);
+	if (dn_nodename != NULL)
+		if (parse_name(dn_nodename))
+			pr_info("Invalid DECnet node name \"%s\"\n",
+				dn_nodename);
 
         dn_dev_devices_on();
 

@@ -40,6 +40,8 @@ int decnet_dlyack_seq = 3;
 int decnet_segbufsize = 576;
 int decnet_outgoing_timer = 60;
 
+char node_name[7] = "???";
+
 long sysctl_decnet_mem[3];
 int sysctl_decnet_wmem[3];
 int sysctl_decnet_rmem[3];
@@ -54,7 +56,6 @@ static int min_decnet_no_fc_max_cwnd[] = { NSP_MIN_WINDOW };
 static int max_decnet_no_fc_max_cwnd[] = { NSP_MAX_WINDOW };
 static int min_decnet_dlyack_seq[] = { NSP_MIN_WINDOW };
 static int max_decnet_dlyack_seq[] = { NSP_MAX_WINDOW };
-static char node_name[7] = "???";
 static int min_decnet_segbufsize[] = { 230 };
 static int max_decnet_segbufsize[] = { ETH_DATA_LEN - DN_RT_HDR_LONG };
 static int min_decnet_timer[] = { 1 };
