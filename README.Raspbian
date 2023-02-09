@@ -212,10 +212,10 @@ Changes from previous DECnet for Linux releases:
 
     2/8/2023
     
-    Added additional parameters when loading the DECnet kernel module:
+    Added additional parameters (suggested by Bob Armstrong) when loading the DECnet kernel module:
     
-    	- dn_nodeaddr="xx.yyyy"		sets the node address
-	-dn_nodename="abcdef"		sets the node name
+    	dn_nodeaddr="xx.yyyy"		sets the node address
+	dn_nodename="abcdef"		sets the node name
 	
 	
     2/2/2023
