@@ -143,6 +143,16 @@ a new kernel along with its associated modules and dtb files.
 
         Where area,node is your node address (note the comma separator) and will have been
         used above to set the MAC address of the ethernet adapter.
+	
+    6C. Using the executor address from /etc/decnet.conf
+    
+    	The following code can be used to replace the modprobe lines as above to extract the node address
+	and node name from the DECnet database file /etc/decnet.conf
+	
+	node=`grep ^executor /etc/decnet.conf | tr -s " " "\t" | cut -f4`
+	addr=`grep ^executor /etc/decnet.conf | tr -s " " "\t" | cut -f2`
+	modprobe decnet dn_nodeaddr="${addr}" dn_nodename="${node}"
+	
 
 7. Most of the above (sections 1 - 5) may be automated by downloading the BuildAndInstall.sh shell script,
    making it executable and running it inside a newly created work directory. You will still need to decide
@@ -200,6 +210,14 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    2/8/2023
+    
+    Added additional parameters when loading the DECnet kernel module:
+    
+    	- dn_nodeaddr="xx.yyyy"		sets the node address
+	-dn_nodename="abcdef"		sets the node name
+	
+	
     2/2/2023
 
    1. Numerous fixes to connection establishment
