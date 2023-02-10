@@ -181,11 +181,10 @@ static int dn_process_ack(struct sock *sk, struct sk_buff *skb, int oth)
  * @pptr: Pointer to pointer to image data
  * @len: Pointer to length of image data
  * @max: The maximum allowed length of the data in the image data field
- * @follow_on: Check that this many bytes exist beyond the end of the image data
  *
  * Returns: 0 if ok, -1 on error
  */
-static inline int dn_check_idf(unsigned char **pptr, int *len, unsigned char max, unsigned char follow_on)
+static inline int dn_check_idf(unsigned char **pptr, int *len, unsigned char max)
 {
         unsigned char *ptr = *pptr;
         unsigned char flen = *ptr++;
@@ -193,7 +192,7 @@ static inline int dn_check_idf(unsigned char **pptr, int *len, unsigned char max
         (*len)--;
         if (flen > max)
                 return -1;
-        if ((flen + follow_on) > *len)
+        if (flen > *len)
                 return -1;
 
         *len -= flen;
@@ -307,11 +306,11 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
          */
         err++;
         if (menuver & DN_MENUVER_ACC) {
-                if (dn_check_idf(&ptr, &len, 39, 1))
+                if (dn_check_idf(&ptr, &len, 39))
                         goto err_out;
-                if (dn_check_idf(&ptr, &len, 39, 1))
+                if (dn_check_idf(&ptr, &len, 39))
                         goto err_out;
-                if (dn_check_idf(&ptr, &len, 39, 1))
+                if (dn_check_idf(&ptr, &len, 39))
                         goto err_out;
         }
 
@@ -320,7 +319,7 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
          */
         err++;
         if (menuver & DN_MENUVER_USR) {
-                if (dn_check_idf(&ptr, &len, 16, 0))
+                if (dn_check_idf(&ptr, &len, 16))
                         goto err_out;
         }
 
