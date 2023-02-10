@@ -210,6 +210,12 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    2/10/2023
+    
+    Fix parsing of incoming Connect-Initiate messages. If the message had the RQSTRID, PASSWD, ACCOUNT bit set and the
+    USRDATA bit clear the logic would require that the message be one byte longer than needed.
+    
+    
     2/8/2023
     
     Added additional parameters (suggested by Bob Armstrong) when loading the DECnet kernel module:
