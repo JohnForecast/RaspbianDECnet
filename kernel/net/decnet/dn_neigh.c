@@ -398,40 +398,40 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
 
         src = dn_eth2dn(msg->id);
 
-        neigh = __neigh_lookup(&dn_neigh_table, &src, skb->dev, 1);
+        /* Only use routers in our area */
+	if ((le16_to_cpu(src) & 0xFC00) == (le16_to_cpu(decnet_address) & 0xFC00)) {
+        	neigh = __neigh_lookup(&dn_neigh_table, &src, skb->dev, 1);
 
-        dn = container_of(neigh, struct dn_neigh, n);
+        	dn = container_of(neigh, struct dn_neigh, n);
 
-        if (neigh) {
-                write_lock(&neigh->lock);
+        	if (neigh) {
+                	write_lock(&neigh->lock);
 
-                neigh->used = jiffies;
-                dn_db = rcu_dereference(neigh->dev->dn_ptr);
+                	neigh->used = jiffies;
+                	dn_db = rcu_dereference(neigh->dev->dn_ptr);
 
-                if (!(neigh->nud_state & NUD_PERMANENT)) {
-                        neigh->updated = jiffies;
+                	if (!(neigh->nud_state & NUD_PERMANENT)) {
+                        	neigh->updated = jiffies;
 
-                        if (neigh->dev->type == ARPHRD_ETHER)
-                                memcpy(neigh->ha, &eth_hdr(skb)->h_source, ETH_ALEN);
+                        	if (neigh->dev->type == ARPHRD_ETHER)
+                                	memcpy(neigh->ha, &eth_hdr(skb)->h_source, ETH_ALEN);
 
-                        dn->blksize  = le16_to_cpu(msg->blksize);
-                        dn->priority = msg->priority;
-                        memcpy(dn->macaddr, eth_hdr(skb)->h_source, ETH_ALEN);
+                        	dn->blksize  = le16_to_cpu(msg->blksize);
+                        	dn->priority = msg->priority;
+                        	memcpy(dn->macaddr, eth_hdr(skb)->h_source, ETH_ALEN);
                         
-                        dn->flags &= ~DN_NDFLAG_P3;
+                        	dn->flags &= ~DN_NDFLAG_P3;
 
-                        switch (msg->iinfo & DN_RT_INFO_TYPE) {
-                        case DN_RT_INFO_L1RT:
-                                dn->flags &=~DN_NDFLAG_R2;
-                                dn->flags |= DN_NDFLAG_R1;
-                                break;
-                        case DN_RT_INFO_L2RT:
-                                dn->flags |= DN_NDFLAG_R2;
-                        }
-                }
+                        	switch (msg->iinfo & DN_RT_INFO_TYPE) {
+                        	case DN_RT_INFO_L1RT:
+                                	dn->flags &=~DN_NDFLAG_R2;
+                                	dn->flags |= DN_NDFLAG_R1;
+                                	break;
+                        	case DN_RT_INFO_L2RT:
+                                	dn->flags |= DN_NDFLAG_R2;
+                        	}
+                	}
 
-                /* Only use routers in our area */
-                if ((le16_to_cpu(src)>>10) == (le16_to_cpu((decnet_address))>>10)) {
                         /*
                          * Check if designated router has changed or we do
                          * not have a reference to a router.
@@ -449,9 +449,10 @@ int dn_neigh_router_hello(struct net *net, struct sock *sk, struct sk_buff *skb)
                                 dn_db->listen = dn_db->multiplier * le16_to_cpu(msg->timer);
                         }
                         dn_db->t4 = dn_db->listen;
-                }
-                write_unlock(&neigh->lock);
-                neigh_release(neigh);
+
+                	write_unlock(&neigh->lock);
+                	neigh_release(neigh);
+		}
         }
 
         kfree_skb(skb);
