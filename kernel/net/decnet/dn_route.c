@@ -108,6 +108,7 @@ struct dn_rt_hash_bucket
 
 #ifndef CONFIG_DECNET_ROUTER
 int dn_IVprime = 0;
+__u64 dn_rtrchange = 0;
 #endif
 
 extern struct neigh_table dn_neigh_table;
@@ -1248,6 +1249,8 @@ make_route:
         if (flags & RTCF_LOCAL)
                 rt->dst.input = dn_nsp_rx;
 
+	rt->rt_created   = get_jiffies_64();
+
         err = dn_rt_set_next_hop(rt, &res);
         if (err)
                 goto e_neighbour;
@@ -1297,7 +1300,11 @@ static int __dn_route_output_key(struct dst_entry **pprt, const struct flowidn *
                             (flp->saddr == rt->fld.saddr) &&
                             (flp->flowidn_mark == rt->fld.flowidn_mark) &&
                             dn_is_output_route(rt) &&
-                            (rt->fld.flowidn_oif == flp->flowidn_oif)) {
+                            (rt->fld.flowidn_oif == flp->flowidn_oif)
+#ifndef CONFIG_DECNET_ROUTER
+			    && time_after64(rt->rt_created, dn_rtrchange)
+#endif
+			    ) {
                                 dst_hold_and_use(&rt->dst, jiffies);
                                 rcu_read_unlock_bh();
                                 *pprt = &rt->dst;
@@ -1526,6 +1533,7 @@ make_route:
                 rt->dst.input = dst_discard;
         }
         rt->rt_flags = flags;
+	rt->rt_created = get_jiffies_64();
 
         err = dn_rt_set_next_hop(rt, &res);
         if (err)
@@ -1876,6 +1884,11 @@ static int dn_rt_cache_seq_show(struct seq_file *seq, void *v)
 {
         struct dn_route *rt = v;
         char buf1[DN_ASCBUF_LEN], buf2[DN_ASCBUF_LEN], buf3[DN_ASCBUF_LEN];
+
+#ifndef CONFIG_DECNET_ROUTER
+	if (!time_after64(rt->rt_created, dn_rtrchange))
+		return SEQ_SKIP;
+#endif
 
         seq_printf(seq, "%-8s %-7s %-7s %-7s %04d %04d %04d\n",
                    rt->dst.dev ? rt->dst.dev->name : "*",

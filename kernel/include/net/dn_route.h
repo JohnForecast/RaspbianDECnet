@@ -106,6 +106,8 @@ struct dn_route {
 
         unsigned int rt_flags;
         unsigned int rt_type;
+
+	__u64 rt_created;	/* Time entry was created (in jiffies) */
 };
 
 static inline bool dn_is_input_route(struct dn_route *rt)
@@ -142,4 +144,8 @@ static inline void dn_rt_finish_output(struct sk_buff *skb, char *dst, char *src
                 kfree_skb(skb);
 }
 
+#ifndef CONFIG_DECNET_ROUTER
+extern int dn_IVprime;
+extern __u64 dn_rtrchange;
+#endif
 #endif /* _NET_DN_ROUTE_H */
