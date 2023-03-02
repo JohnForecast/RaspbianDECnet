@@ -1770,7 +1770,17 @@ static int __dn_getsockopt(struct socket *sock, int level,int optname, char __us
         }
 
         if (r_data) {
-                if (copy_to_user(optval, r_data, r_len))
+		/*
+		 * Copy the data through a bounce buffer in case
+		 * CONFIG_HARDENED_USERCOPY is defined.
+		 */
+		union {
+			struct optdata_dn	optdata;
+			struct accessdata_dn	accessdata;
+		} bounce;
+
+		memcpy(&bounce, r_data, r_len);
+                if (copy_to_user(optval, &bounce, r_len))
                         return -EFAULT;
                 if (put_user(r_len, optlen))
                         return -EFAULT;
