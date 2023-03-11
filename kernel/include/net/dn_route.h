@@ -39,6 +39,7 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev,
 
 /* Mask for control/routing selection */
 #define DN_RT_PKT_CNTL  0x01 /* Set to 1 if a control packet  */
+#define DN_RT_CNTL_RSVD	0x70 /* Reserved - MUST be zero       */
 /* Types of control packets */
 #define DN_RT_CNTL_MSK  0x0f /* Mask for control packets      */
 #define DN_RT_PKT_INIT  0x01 /* Initialisation packet         */
