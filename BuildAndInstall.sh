@@ -161,7 +161,7 @@ fi
 # Make sure all the packages we will need are installed
 #
 echo "Checking required packages are installed"
-for pkg in git bc bison flex libssl-dev make libncurses-dev
+for pkg in git bc bison flex libssl-dev make libncurses-dev linux-libc-dev
 do
     $SUDO $DPKG -s $pkg >/dev/null 2>&1
     if [ $? -ne 0 ]; then

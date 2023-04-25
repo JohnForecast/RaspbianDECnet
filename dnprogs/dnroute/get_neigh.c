@@ -27,11 +27,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <limits.h>
-#ifdef NETFILTER_ON_UAPI
-#include <linux/uapi/netfilter_decnet.h>
-#else
 #include <linux/netfilter_decnet.h>
-#endif
 #include <netdnet/dnetdb.h>
 #include <features.h>    /* for the glibc version number */
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
