@@ -11,7 +11,12 @@ Minimum Raspbian release:   2020-02-05
 Maximum kernel supported:   6.0.19
 
 NOTE: Kernel 6.0.x is the last Linux kernel that includes DECnet source code. The code in
-      this repository and BuildAndInstall.sh will NOT work on kernels after 6.0.x
+      this repository and BuildAndInstall.sh will NOT work on kernels after 6.0.x. If you
+      have already upgraded to the 2023-02-22 you are already running kernel 6.1 and at
+      least one decnet header file has been removed. You can replace that file by:
+      
+      	cd to directory containing RaspbianDECnet
+      	sudo cp linux/include/uapi/linux/netfilter_decnet.h /usr/include/linux
       
 Note: For kernels earlier than 5.8
 
