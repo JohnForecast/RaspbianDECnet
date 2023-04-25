@@ -368,7 +368,7 @@ static void dn_dev_del_ifa(struct dn_dev *dn_db, struct dn_ifaddr __rcu **ifap, 
         *ifap = ifa1->ifa_next;
 
         if (dn_db->dev->type == ARPHRD_ETHER) {
-                if (ifa1->ifa_local != dn_eth2dn(dev->dev_addr)) {
+                if (ifa1->ifa_local != dn_eth2dn((const unsigned char *)dev->dev_addr)) {
                         dn_dn2eth(mac_addr, ifa1->ifa_local);
                         dev_mc_del(dev, mac_addr);
                 }
@@ -401,7 +401,7 @@ static int dn_dev_insert_ifa(struct dn_dev *dn_db, struct dn_ifaddr *ifa)
         }
 
         if (dev->type == ARPHRD_ETHER) {
-                if (ifa->ifa_local != dn_eth2dn(dev->dev_addr)) {
+                if (ifa->ifa_local != dn_eth2dn((const unsigned char *)dev->dev_addr)) {
                         dn_dn2eth(mac_addr, ifa->ifa_local);
                         dev_mc_add(dev, mac_addr);
                 }
