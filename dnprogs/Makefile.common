@@ -127,6 +127,10 @@ PTSLIBS=-lutil
 endif
 endif
 
+ifeq (/usr/include/linux/uapi/netfilter_decnet.h,$(wildcard /usr/include/linux/uapi/netfilter_decnet.h))
+NETFILTERDEFS=-DNETFILTER_ON_UAPI
+endif
+
 #
 # Miscellaneous compilation flags
 #
@@ -138,8 +142,8 @@ LIBCRYPT=-lcrypt
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 INCLUDES=-I$(TOP)/libdap -I$(TOP)/include
-CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
-CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(NETFILTERDEFS) $(DFLAGS) $(LDFLAGS)
+CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(NETFILTERDEFS) $(DFLAGS) $(LDFLAGS)
 
 # Conditional for shared/static libs
 ifdef LINKSTATIC
