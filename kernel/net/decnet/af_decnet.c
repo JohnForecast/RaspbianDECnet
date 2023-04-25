@@ -162,6 +162,9 @@ static DEFINE_RWLOCK(dn_hash_lock);
 static struct hlist_head dn_sk_hash[DN_SK_HASH_SIZE];
 static struct hlist_head dn_wild_sk;
 static atomic_long_t decnet_memory_allocated;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0)
+static DEFINE_PER_CPU(int, decnet_memory_per_cpu_fw_alloc);
+#endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,9,0)
 static int __dn_setsockopt(struct socket *sock, int level, int optname, sockptr_t optval, unsigned int optlen, int flags);
@@ -522,6 +525,9 @@ static struct proto dn_proto = {
         .enter_memory_pressure  = dn_enter_memory_pressure,
         .memory_pressure        = &dn_memory_pressure,
         .memory_allocated       = &decnet_memory_allocated,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0)
+	.per_cpu_fw_alloc	= &decnet_memory_per_cpu_fw_alloc,
+#endif
         .sysctl_mem             = sysctl_decnet_mem,
         .sysctl_wmem            = sysctl_decnet_wmem,
         .sysctl_rmem            = sysctl_decnet_rmem,
@@ -2550,11 +2556,11 @@ static int __init decnet_init(void)
 	max_wshare = min(4UL * 1024 *1024, limit);
 	max_rshare = min(6Ul * 1024 * 1024, limit);
 
-	sysctl_decnet_wmem[0] = SK_MEM_QUANTUM;
+	sysctl_decnet_wmem[0] = PAGE_SIZE;
 	sysctl_decnet_wmem[1] = 16 * 1024;
 	sysctl_decnet_wmem[2] = max(64 * 1024, max_wshare);
 
-	sysctl_decnet_rmem[0] = SK_MEM_QUANTUM;
+	sysctl_decnet_rmem[0] = PAGE_SIZE;
 	sysctl_decnet_rmem[1] = 131072;
 	sysctl_decnet_rmem[2] = max(131072, max_rshare);
 
