@@ -8,7 +8,11 @@ The kit may be obtained by:
 
 Minimum kernel supported:   4.19.93
 Minimum Raspbian release:   2020-02-05
+Maximum kernel supported:   6.0.19
 
+NOTE: Kernel 6.0.x is the last Linux kernel that includes DECnet source code. The code in
+      this repository and BuildAndInstall.sh will NOT work on kernels after 6.0.x
+      
 Note: For kernels earlier than 5.8
 
     The help syntax in the Kconfig file has been changed in 5.8 and beyond. If you try to
@@ -210,6 +214,12 @@ a new kernel along with its associated modules and dtb files.
                 
 Changes from previous DECnet for Linux releases:
 
+    4/24/2013
+    
+    Changes to support kernel 6.0.0 and 6.0.y from the Rapsberry Pi repository. Thanks to Brian Angus for reporting this
+    problem and helping locate all the changes needed. This is currently a work-in-progress.
+    
+    
     2/10/2023
     
     Fix parsing of incoming Connect-Initiate messages. If the message had the RQSTRID, PASSWD, ACCOUNT bit set and the
