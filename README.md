@@ -1,6 +1,8 @@
 # RaspbianDECnet
 DECnet for Linux updated to run on latest Raspbian/piOS
 
+I WILL NO LONGER BE MAKING CHANGES TO THIS REPOSITORY. ALL NEW CHANGES WITH BE MADE TO:
+    https://github.com/JohnForecast/LinuxDECnet
 
 README.Raspbian
 
